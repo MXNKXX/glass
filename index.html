@@ -1,31 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Glass Plate Array</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flow Field Studio</title>
   <style>
     :root {
       color-scheme: light;
       --panel: #ffffff;
-      --panel-soft: #f5f5f7;
+      --panel-soft: #f2f2f4;
+      --control-bg: #ffffff;
       --body-bg: #ffffff;
-      --view-bg: #ffffff;
-      --panel-bg: linear-gradient(180deg, #fbfbfd, #f5f5f7);
-      --section-bg: rgba(255, 255, 255, .82);
-      --button-bg: linear-gradient(180deg, #ffffff, #f2f2f5);
-      --canvas-shadow: 0 18px 50px rgba(20, 33, 45, .12);
-      --line: rgba(0, 0, 0, .1);
+      --view-bg: #f6f7f9;
+      --panel-bg: linear-gradient(180deg, rgba(251, 251, 253, .94), rgba(242, 243, 246, .92));
+      --section-bg: rgba(255, 255, 255, .72);
+      --button-bg: linear-gradient(180deg, #ffffff, #f1f1f3);
+      --canvas-shadow: 0 22px 70px rgba(20, 33, 45, .14);
+      --line: rgba(60, 60, 67, .16);
       --text: #1d1d1f;
       --label: #2b2b2f;
       --muted: #6e6e73;
+      --muted-2: #6e6e73;
       --accent: #007aff;
+      --focus-ring: rgba(0, 122, 255, .22);
     }
 
     body.dark {
       color-scheme: dark;
       --panel: #12151b;
       --panel-soft: #1b2029;
+      --control-bg: #161b23;
       --body-bg: #0e1116;
       --view-bg: #0d1117;
       --panel-bg: linear-gradient(180deg, #101319, #151922);
@@ -36,34 +40,68 @@
       --text: #eef3f7;
       --label: #dbe4ec;
       --muted: #99a4af;
+      --muted-2: #99a4af;
       --accent: #82ddff;
+      --focus-ring: rgba(130, 221, 255, .22);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
+    html,
     body {
+      width: 100%;
+      height: 100%;
       margin: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
       background: var(--body-bg);
     }
 
-    .app {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      width: 100%;
-      height: 100%;
+    body {
+      min-height: 100%;
+      overflow: hidden;
     }
 
-    .panel {
-      overflow-y: auto;
-      padding: 20px 16px 24px;
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) 56px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+
+    .sidebar {
+      grid-row: 1 / 2;
+      min-width: 0;
+      padding: 18px 14px 22px;
       background: var(--panel-bg);
       border-right: 1px solid var(--line);
+      overflow: auto;
       backdrop-filter: blur(24px);
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--muted) 38%, transparent) transparent;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      border-radius: 999px;
+      background-clip: padding-box;
+      background-color: color-mix(in srgb, var(--muted) 34%, transparent);
     }
 
     .panel-head {
@@ -80,7 +118,7 @@
 
     h1 {
       margin: 0 0 4px;
-      font-size: 17px;
+      font-size: 16px;
       line-height: 1.2;
       letter-spacing: 0;
       font-weight: 650;
@@ -89,7 +127,7 @@
     .intro {
       margin: 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.45;
     }
 
@@ -101,20 +139,260 @@
       white-space: nowrap;
     }
 
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 5px;
+      border-radius: 10px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+      transition: color 160ms ease, background 160ms ease;
+    }
+
+    .tab.active {
+      color: #ffffff;
+      background: var(--accent);
+      font-weight: 760;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
     .section {
       margin: 0 0 12px;
       padding: 12px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 12px;
       background: var(--section-bg);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .035), 0 10px 28px rgba(0, 0, 0, .035);
+      backdrop-filter: blur(18px);
     }
 
-    .section h2 {
-      margin: 0 0 10px;
-      font-size: 13px;
-      letter-spacing: 0;
+    .section:first-child {
+      padding-top: 2px;
+    }
+
+    .section-title {
+      margin: 0 0 13px;
+      color: var(--text);
+      font-size: 12px;
       font-weight: 650;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .swatches {
+      display: grid;
+      gap: 9px;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    .color-control {
+      min-width: 0;
+    }
+
+    .color-control label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--label);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .color-control input[type="color"] {
+      width: 100%;
+      height: 30px;
+      padding: 2px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--control-bg);
+      cursor: pointer;
+    }
+
+    .color-control input[type="text"] {
+      width: 100%;
+      height: 30px;
+      margin-top: 7px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: var(--control-bg);
+      padding: 0 8px;
+      outline: none;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ratio-list {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .ratio-option {
+      display: grid;
+      grid-template-columns: 18px 48px minmax(0, 1fr);
+      align-items: center;
+      gap: 9px;
+      padding: 8px 9px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--control-bg);
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    .ratio-option:hover {
+      transform: translateY(-1px);
+    }
+
+    .ratio-option:has(input:checked) {
+      background: color-mix(in srgb, var(--accent) 12%, var(--panel-soft));
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+    }
+
+    .ratio-option input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .ratio-value {
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ratio-name {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .size-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 9px;
+    }
+
+    .size-field label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--label);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .size-field input {
+      width: 100%;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: var(--control-bg);
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 5px;
+      border-radius: 10px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+
+    .segmented label {
+      display: grid;
+      place-items: center;
+      min-height: 30px;
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .segmented input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .segmented label:has(input:checked) {
+      color: #ffffff;
+      background: var(--accent);
+    }
+
+    .swatch {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: 10px;
+      color: var(--text);
+      background: var(--control-bg);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .swatch:hover {
+      transform: translateY(-1px);
+    }
+
+    .swatch.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent) inset;
+    }
+
+    .swatch-strip {
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    .swatch span {
+      font-size: 12px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .swatch small {
+      color: var(--muted);
+      font-size: 11px;
     }
 
     .control {
@@ -125,1213 +403,1450 @@
       margin: 10px 0;
     }
 
-    .control label {
-      font-size: 12px;
+    .label-row {
+      display: contents;
       color: var(--label);
+      font-size: 12px;
+      font-weight: 400;
     }
 
-    .value {
-      min-width: 42px;
-      text-align: right;
-      font-size: 11px;
+    .label-row output {
       color: var(--muted);
       font-variant-numeric: tabular-nums;
+      font-size: 11px;
+      min-width: 42px;
+      text-align: right;
+    }
+
+    .range-caps {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted-2);
+      font-size: 11px;
+      margin-top: 7px;
     }
 
     input[type="range"] {
-      grid-column: 1 / -1;
       width: 100%;
-      accent-color: var(--accent);
-    }
-
-    input[type="color"] {
-      width: 42px;
-      height: 28px;
-      padding: 0;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: transparent;
-    }
-
-    input[type="text"] {
-      min-height: 30px;
-      color: var(--text);
-      background: var(--panel-soft);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 5px 8px;
-      font: inherit;
-      font-size: 12px;
-      text-transform: uppercase;
-    }
-
-    select {
-      width: 100%;
-      min-height: 30px;
-      color: var(--text);
-      background: var(--panel-soft);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 5px 8px;
-      font: inherit;
-      font-size: 12px;
-    }
-
-    .select-row,
-    .check-row {
-      display: grid;
-      grid-template-columns: 1fr 1.08fr;
-      gap: 10px;
-      align-items: center;
-      margin: 10px 0;
-    }
-
-    .select-row label,
-    .check-row label {
-      font-size: 12px;
-      color: var(--label);
-    }
-
-    .color-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 7px;
-      margin: 10px 0;
-    }
-
-    .color-row label {
-      font-size: 12px;
-      color: var(--label);
-    }
-
-    .color-inputs {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-    }
-
-    input[type="checkbox"] {
-      justify-self: start;
-      width: 18px;
       height: 18px;
-      accent-color: var(--accent);
-    }
-
-    button {
-      width: 100%;
-      min-height: 34px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      color: var(--text);
-      background: var(--button-bg);
-      font: inherit;
-      font-size: 12px;
+      grid-column: 1 / -1;
+      appearance: none;
+      background: transparent;
+      margin: 0;
       cursor: pointer;
     }
 
-    button:hover { border-color: rgba(130, 221, 255, .65); }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 3px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--accent) 58%, var(--panel-soft));
+    }
 
-    .is-hidden { display: none !important; }
+    input[type="range"]::-moz-range-track {
+      height: 3px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--accent) 58%, var(--panel-soft));
+    }
 
-    .view {
-      position: relative;
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      margin-top: -7px;
+      border-radius: 50%;
+      background: #f7feff;
+      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line));
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .16);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #f7feff;
+      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line));
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .16);
+    }
+
+    .toggle-row {
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 18px;
+      color: var(--label);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .switch {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: background 160ms ease;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      left: 3px;
+      top: 2px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, .22);
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .switch input:checked + .slider {
+      background: color-mix(in srgb, var(--accent) 28%, var(--panel-soft));
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(19px);
+      background: #ffffff;
+    }
+
+    .button {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
+      min-height: 34px;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: var(--button-bg);
+      cursor: pointer;
+      font-weight: 400;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    }
+
+    .button:disabled {
+      opacity: 0.62;
+      cursor: wait;
+    }
+
+    .preview-wrap {
+      grid-row: 1 / 2;
       min-width: 0;
-      height: 100vh;
-      overflow: hidden;
-      padding: 22px;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
       background: var(--view-bg);
+      overflow: hidden;
+    }
+
+    .stage {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      overflow: hidden;
+    }
+
+    .artboard {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #1d3448;
+      max-width: 100%;
+      max-height: 100%;
+      box-shadow: var(--canvas-shadow);
+      border-radius: 10px;
     }
 
     canvas {
       display: block;
-      max-width: 100%;
-      max-height: 100%;
-      box-shadow: var(--canvas-shadow);
+      width: 100%;
+      height: 100%;
     }
 
-    @media (max-width: 760px) {
-      body { overflow: auto; }
+    .notice {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+      color: var(--text);
+      background: var(--panel-soft);
+      z-index: 2;
+    }
+
+    .notice.show {
+      display: grid;
+    }
+
+    .notice strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+
+    .notice p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 420px;
+    }
+
+    .export-bar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: auto auto auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--panel-bg);
+      border-top: 1px solid var(--line);
+    }
+
+    .export-title {
+      margin-right: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 650;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    select,
+    .export-button {
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: var(--panel-soft);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .export-button {
+      color: var(--text);
+      background: var(--button-bg);
+      border-color: var(--line);
+      font-weight: 400;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    }
+
+    .export-button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    button:hover,
+    .export-button:hover,
+    .button:hover {
+      border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: color-mix(in srgb, var(--accent) 68%, var(--line));
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow: auto;
+      }
+
       .app {
+        width: 100vw;
+        height: 100vh;
+        min-height: 0;
         grid-template-columns: 1fr;
-        grid-template-rows: 48vh auto;
-        height: auto;
-        min-height: 100vh;
+        grid-template-rows: auto minmax(360px, 1fr) auto;
       }
-      .view {
-        grid-row: 1;
-        height: 48vh;
-        min-height: 380px;
-        padding: 12px;
-      }
-      .panel {
-        grid-row: 2;
+
+      .sidebar {
+        grid-row: 1 / 2;
         border-right: 0;
-        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        max-height: 48vh;
+      }
+
+      .preview-wrap {
+        grid-row: 2 / 3;
+      }
+
+      .stage {
+        padding: 0;
+      }
+
+      .export-bar {
+        grid-row: 3 / 4;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .export-title {
+        grid-column: 1 / -1;
+        text-align: left;
       }
     }
   </style>
 </head>
 <body>
-  <main class="app">
-    <aside class="panel">
+  <main class="app" aria-label="Flow Field Studio">
+    <aside class="sidebar">
       <div class="panel-head">
         <div class="panel-copy">
-          <h1>Glass Plate Array</h1>
-          <p class="intro">Thin solid discs and rounded plates arranged in 3D space.</p>
+          <h1>Flow Field Studio</h1>
+          <p class="intro">Soft scalar fields with a progressive boundary stroke.</p>
         </div>
         <button class="theme-toggle" id="themeToggle" type="button">Light UI</button>
       </div>
-      <div id="ui"></div>
+
+      <nav class="tabs" aria-label="Control tabs">
+        <button class="tab active" type="button" data-tab="basic">Basic</button>
+        <button class="tab" type="button" data-tab="advanced">Advanced</button>
+      </nav>
+
+      <section class="panel active" id="basicPanel">
+        <div class="section">
+          <h2 class="section-title">Canvas Size</h2>
+          <div class="ratio-list" id="ratioList" aria-label="Canvas ratio"></div>
+          <div class="size-grid">
+            <div class="size-field">
+              <label for="canvasWidth">Width</label>
+              <input id="canvasWidth" type="number" min="64" max="8192" step="1" value="1280">
+            </div>
+            <div class="size-field">
+              <label for="canvasHeight">Height</label>
+              <input id="canvasHeight" type="number" min="64" max="8192" step="1" value="720">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Colour Preset</h2>
+          <div class="swatches" id="swatches"></div>
+          <div class="color-grid" aria-label="Custom palette colours">
+            <div class="color-control">
+              <label for="colorA">Area A</label>
+              <input id="colorA" type="color" value="#f0c8c1">
+              <input id="colorAHex" type="text" value="#F0C8C1" maxlength="7" spellcheck="false" aria-label="Area A hex">
+            </div>
+            <div class="color-control">
+              <label for="colorB">Area B</label>
+              <input id="colorB" type="color" value="#eb7778">
+              <input id="colorBHex" type="text" value="#EB7778" maxlength="7" spellcheck="false" aria-label="Area B hex">
+            </div>
+            <div class="color-control">
+              <label for="boundaryColor">Edge</label>
+              <input id="boundaryColor" type="color" value="#ffffff">
+              <input id="boundaryColorHex" type="text" value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Edge hex">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="control">
+            <div class="label-row">
+              <label for="basicForm">Form</label>
+              <output id="basicFormValue">0.280</output>
+            </div>
+            <input id="basicForm" type="range" min="0" max="1" step="0.001" value="0.28">
+            <div class="range-caps"><span>Simple</span><span>Complex</span></div>
+          </div>
+
+          <div class="control">
+            <div class="label-row">
+              <label for="basicMotion">Dynamic</label>
+              <output id="basicMotionValue">0.360</output>
+            </div>
+            <input id="basicMotion" type="range" min="0" max="1" step="0.001" value="0.36">
+            <div class="range-caps"><span>Slow</span><span>Active</span></div>
+          </div>
+
+          <div class="toggle-row">
+            <span>Animate</span>
+            <label class="switch" aria-label="Toggle animation">
+              <input id="animateToggle" type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <button class="button" id="randomiseButton" type="button">Randomise form</button>
+        </div>
+      </section>
+
+      <section class="panel" id="advancedPanel">
+        <div class="section">
+          <h2 class="section-title">Form</h2>
+          <div class="control" data-control="bend"></div>
+          <div class="control" data-control="radius"></div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Boundary</h2>
+          <div class="control" data-control="edgeMin"></div>
+          <div class="control" data-control="edgeMax"></div>
+          <div class="control" data-control="blur"></div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Flow Dynamics</h2>
+          <div class="control" data-control="flowSpeed"></div>
+          <div class="control" data-control="splitFlow"></div>
+          <div class="control" data-control="edgeTension"></div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Texture</h2>
+          <div class="segmented" aria-label="Grain mode">
+            <label>
+              <input type="radio" name="grainMode" value="still" checked>
+              Still
+            </label>
+            <label>
+              <input type="radio" name="grainMode" value="animated">
+              Animated
+            </label>
+          </div>
+          <div class="control" data-control="grain"></div>
+        </div>
+      </section>
     </aside>
 
-    <section class="view" id="view">
-      <canvas id="canvas"></canvas>
+    <section class="preview-wrap">
+      <div class="stage">
+        <div class="artboard">
+          <canvas id="previewCanvas" aria-label="Generated flow field preview"></canvas>
+          <div class="notice" id="notice">
+            <div>
+              <strong>WebGL2 is not available.</strong>
+              <p>This artwork is rendered with a fragment shader. Please open this file in a browser with WebGL2 support enabled.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
+
+    <footer class="export-bar">
+      <div class="export-title">Export</div>
+      <button class="export-button" id="downloadImage" type="button">Download JPG</button>
+      <select id="videoDuration" aria-label="Video duration">
+        <option value="3">3s</option>
+        <option value="5">5s</option>
+        <option value="8">8s</option>
+        <option value="10">10s</option>
+      </select>
+      <button class="export-button" id="downloadVideo" type="button">Download MP4</button>
+    </footer>
   </main>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
-      }
-    }
-  </script>
+  <script>
+    "use strict";
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    const view = document.querySelector('#view');
-    const canvas = document.querySelector('#canvas');
-    const ui = document.querySelector('#ui');
-    const themeToggle = document.querySelector('#themeToggle');
-
-    const state = {
-      lightUI: true,
-      canvasSize: '16:9 Widescreen',
-      shape: 'roundedRect',
-      count: 14,
-      panelSize: 1.12,
-      panelAspect: 0.65,
-      cornerRadius: 0.18,
-      discInflate: 0.55,
-      rotationPreset: 'front 0deg',
-      shapeRotX: 0,
-      shapeRotY: 0,
-      shapeRotZ: 0,
-      layout: 'ring',
-      spacing: 1,
-      lineSpacingX: 0.62,
-      lineSpacingZ: 0.08,
-      lineWaveAmount: 0,
-      lineWaveFrequency: 1.5,
-      layoutFacing: 'tangent',
-      layoutStartAngle: -90,
-      axisRotX: 0,
-      axisRotY: 0,
-      axisRotZ: 0,
-      selectedItem: 0,
-      customX: 0,
-      customY: 0,
-      customZ: 0,
-      customRotX: 0,
-      customRotY: 0,
-      customRotZ: 0,
-      customScale: 1,
-      motion: true,
-      groupRotate: true,
-      groupSpeed: 0.18,
-      selfSpin: true,
-      selfSpeed: 0.55,
-      selfSpinOffset: 0,
-      cameraPreset: 'perspective',
-      cameraYaw: 37,
-      cameraPitch: 22,
-      cameraRoll: 0,
-      zoom: 1,
-      perspectiveStrength: 0.25,
-      backgroundColor: '#eaf2f4',
-      objectColor: '#c9fbff',
-      panelGradientColor: '#7b4dff',
-      panelGradientAmount: 0.35,
-      panelGradientDirection: 'diagonal',
-      backLayer: false,
-      backLayerOpacity: 0,
-      backLayerBlur: 0.2,
-      opacity: 0.54,
-      gloss: 0.72,
-      thickness: 0.08
-    };
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: true,
-      preserveDrawingBuffer: true
-    });
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(state.backgroundColor);
-
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 80);
-    const target = new THREE.Vector3(0, 0, 0);
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
-    controls.target.copy(target);
-
-    const masterGroup = new THREE.Group();
-    masterGroup.name = 'masterGroup';
-    scene.add(masterGroup);
-    const layoutGroup = new THREE.Group();
-    layoutGroup.name = 'layoutAxisGroup';
-    masterGroup.add(layoutGroup);
-
-    const ambient = new THREE.HemisphereLight(0xffffff, 0x9db2c0, 1.45);
-    const key = new THREE.DirectionalLight(0xffffff, 2.4);
-    key.position.set(4, 6, 5);
-    const rimLight = new THREE.DirectionalLight(0x95eaff, 2.1);
-    rimLight.position.set(-4, 2.5, -4);
-    scene.add(ambient, key, rimLight);
-
-    const backdropMaterial = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      depthWrite: false,
-      uniforms: {
-        base: { value: new THREE.Color(state.backgroundColor) },
-        top: { value: new THREE.Color(state.backgroundColor).lerp(new THREE.Color('#ffffff'), 0.28) }
-      },
-      vertexShader: `
-        varying vec3 vWorld;
-        void main() {
-          vec4 world = modelMatrix * vec4(position, 1.0);
-          vWorld = world.xyz;
-          gl_Position = projectionMatrix * viewMatrix * world;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vWorld;
-        uniform vec3 base;
-        uniform vec3 top;
-        void main() {
-          vec3 dir = normalize(vWorld);
-          float y = dir.y * 0.5 + 0.5;
-          vec3 color = mix(base, top, smoothstep(0.1, 1.0, y));
-          gl_FragColor = vec4(color, 1.0);
-        }
-      `
-    });
-    const backdropMesh = new THREE.Mesh(new THREE.SphereGeometry(36, 48, 24), backdropMaterial);
-    scene.add(backdropMesh);
-
-    const glassMaterial = new THREE.MeshPhysicalMaterial({
-      color: state.objectColor,
-      transparent: true,
-      opacity: state.opacity,
-      transmission: 0.65,
-      roughness: 0.18,
-      metalness: 0,
-      thickness: 0.6,
-      ior: 1.46,
-      reflectivity: 0.65,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.08,
-      side: THREE.DoubleSide,
-      depthWrite: false
-    });
-
-    glassMaterial.userData.uniforms = {
-      panelBaseColor: { value: new THREE.Color(state.objectColor) },
-      panelGradientColor: { value: new THREE.Color(state.panelGradientColor) },
-      panelGradientAmount: { value: state.panelGradientAmount },
-      panelGradientDirection: { value: 2 }
-    };
-
-    glassMaterial.onBeforeCompile = (shader) => {
-      Object.assign(shader.uniforms, glassMaterial.userData.uniforms);
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <common>',
-        `#include <common>
-        varying vec3 vPanelLocal;`
-      );
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
-        vPanelLocal = position.xyz;`
-      );
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <common>',
-        `#include <common>
-        varying vec3 vPanelLocal;
-        uniform vec3 panelBaseColor;
-        uniform vec3 panelGradientColor;
-        uniform float panelGradientAmount;
-        uniform float panelGradientDirection;`
-      );
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <color_fragment>',
-        `#include <color_fragment>
-        float g = vPanelLocal.x;
-        if (panelGradientDirection > 0.5 && panelGradientDirection < 1.5) g = vPanelLocal.y;
-        if (panelGradientDirection > 1.5) g = (vPanelLocal.x - vPanelLocal.y) * 0.7071;
-        float gradientMix = smoothstep(-0.7, 0.7, g);
-        diffuseColor.rgb = mix(panelBaseColor, panelGradientColor, gradientMix * panelGradientAmount);`
-      );
-    };
-
-    const fillMaterial = new THREE.MeshBasicMaterial({
-      color: state.objectColor,
-      transparent: true,
-      opacity: 0.12,
-      depthWrite: false,
-      side: THREE.DoubleSide
-    });
-
-    const backLayerMaterial = new THREE.MeshBasicMaterial({
-      color: state.objectColor,
-      transparent: true,
-      opacity: state.backLayerOpacity,
-      depthWrite: false,
-      side: THREE.DoubleSide
-    });
-
-    let items = [];
-    let sharedGeometry = null;
-    let cameraTween = null;
-    const clock = new THREE.Clock();
-
-    const specs = [
-      { title: 'Canvas', controls: [
-        { key: 'canvasSize', label: 'Canvas size', type: 'select', options: ['1:1 Square', '16:9 Widescreen', '9:16 Social story', '4:3 Classic', '3:4 Traditional', '3:2 Standard', '2:3 Portrait', '1:2 Vertical', '2:1 Horizontal', '4:5 Social post'], canvas: true }
-      ]},
-      { title: 'Layout', controls: [
-        { key: 'layout', label: 'Layout', type: 'select', options: ['line', 'arc', 'ring', 'custom'] },
-        { key: 'spacing', label: 'Spacing', type: 'range', min: 0.12, max: 1.8, step: 0.005, showWhen: () => state.layout !== 'custom' },
-        { key: 'layoutFacing', label: 'Panel direction', type: 'select', options: ['tangent', 'same direction', 'inward', 'outward'], showWhen: () => state.layout !== 'custom' },
-        { key: 'layoutStartAngle', label: 'Start angle', type: 'range', min: -180, max: 180, step: 1, showWhen: () => state.layout === 'arc' || state.layout === 'ring' },
-        { key: 'lineSpacingX', label: 'Line spacing X', type: 'range', min: 0, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
-        { key: 'lineSpacingZ', label: 'Line spacing Z', type: 'range', min: -2.5, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
-        { key: 'lineWaveAmount', label: 'Line wave amount', type: 'range', min: 0, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
-        { key: 'lineWaveFrequency', label: 'Line wave frequency', type: 'range', min: 0.25, max: 4, step: 0.01, showWhen: () => state.layout === 'line' },
-        { key: 'axisRotX', label: 'Layout axis tilt X', type: 'range', min: -90, max: 90, step: 1, showWhen: () => state.layout !== 'custom' },
-        { key: 'axisRotY', label: 'Layout axis turn Y', type: 'range', min: -180, max: 180, step: 1, showWhen: () => state.layout !== 'custom' },
-        { key: 'axisRotZ', label: 'Layout axis roll Z', type: 'range', min: -180, max: 180, step: 1, showWhen: () => state.layout !== 'custom' }
-      ]},
-      { title: 'Custom Edit', showWhen: () => state.layout === 'custom', controls: [
-        { key: 'selectedItem', label: 'Selected item', type: 'range', min: 0, max: 23, step: 1, customSelect: true },
-        { key: 'customX', label: 'Position X', type: 'range', min: -6, max: 6, step: 0.01, customTransform: true },
-        { key: 'customY', label: 'Position Y', type: 'range', min: -4, max: 4, step: 0.01, customTransform: true },
-        { key: 'customZ', label: 'Position Z', type: 'range', min: -6, max: 6, step: 0.01, customTransform: true },
-        { key: 'customRotX', label: 'Rotation X', type: 'range', min: -180, max: 180, step: 1, customTransform: true },
-        { key: 'customRotY', label: 'Rotation Y', type: 'range', min: -180, max: 180, step: 1, customTransform: true },
-        { key: 'customRotZ', label: 'Rotation Z', type: 'range', min: -180, max: 180, step: 1, customTransform: true },
-        { key: 'customScale', label: 'Scale', type: 'range', min: 0.2, max: 2.2, step: 0.01, customTransform: true },
-        { label: 'Reset Selected', type: 'button', action: resetSelectedCustom },
-        { label: 'Reset All Custom', type: 'button', action: resetAllCustom }
-      ]},
-      { title: 'Shape', controls: [
-        { key: 'shape', label: 'Shape type', type: 'select', options: ['disc', 'roundedRect'], rebuild: true },
-        { key: 'count', label: 'Count', type: 'range', min: 1, max: 24, step: 1, rebuild: true },
-        { key: 'panelSize', label: 'Panel size', type: 'range', min: 0.45, max: 2.1, step: 0.01, rebuild: true },
-        { key: 'panelAspect', label: 'Aspect W/H', type: 'range', min: 0.35, max: 2.4, step: 0.01, rebuild: true },
-        { key: 'cornerRadius', label: 'Corner radius', type: 'range', min: 0.02, max: 0.5, step: 0.01, rebuild: true, showWhen: () => state.shape === 'roundedRect' },
-        { key: 'discInflate', label: 'Disc inflate', type: 'range', min: 0, max: 1.2, step: 0.01, rebuild: true, showWhen: () => state.shape === 'disc' },
-        { key: 'thickness', label: 'Thickness', type: 'range', min: 0.02, max: 0.28, step: 0.005, rebuild: true },
-        { key: 'rotationPreset', label: 'Rotation preset', type: 'select', options: ['custom', 'front 0deg', 'side 90deg', 'back 180deg', 'flat top 90deg', 'roll 90deg'], rotationPreset: true },
-        { key: 'shapeRotX', label: 'Shape rotation X', type: 'range', min: -90, max: 90, step: 1 },
-        { key: 'shapeRotY', label: 'Shape rotation Y', type: 'range', min: -180, max: 180, step: 1 },
-        { key: 'shapeRotZ', label: 'Shape rotation Z', type: 'range', min: -180, max: 180, step: 1 }
-      ]},
-      { title: 'Motion', controls: [
-        { key: 'motion', label: 'Motion on/off', type: 'checkbox' },
-        { key: 'groupRotate', label: 'Group rotate on/off', type: 'checkbox' },
-        { key: 'groupSpeed', label: 'Group rotate speed', type: 'range', min: -1.2, max: 1.2, step: 0.01 },
-        { key: 'selfSpin', label: 'Self spin on/off', type: 'checkbox' },
-        { key: 'selfSpeed', label: 'Self spin speed', type: 'range', min: -2.5, max: 2.5, step: 0.01 },
-        { key: 'selfSpinOffset', label: 'Self spin offset', type: 'range', min: 0, max: 0.6, step: 0.01, showWhen: () => state.selfSpin }
-      ]},
-      { title: 'Camera', controls: [
-        { key: 'cameraPreset', label: 'Camera angle', type: 'select', options: ['front', 'top', 'side', 'isometric', 'perspective', 'custom'], camera: true },
-        { key: 'cameraYaw', label: 'Camera yaw L/R', type: 'range', min: -180, max: 180, step: 1, camera: true, cameraManual: true },
-        { key: 'cameraPitch', label: 'Camera pitch U/D', type: 'range', min: -85, max: 85, step: 1, camera: true, cameraManual: true },
-        { key: 'cameraRoll', label: 'Horizon tilt / roll', type: 'range', min: -180, max: 180, step: 1, camera: true, cameraManual: true },
-        { key: 'zoom', label: 'Zoom', type: 'range', min: 0.45, max: 2.2, step: 0.01, camera: true },
-        { key: 'perspectiveStrength', label: 'Perspective strength', type: 'range', min: 0, max: 1, step: 0.01, camera: true }
-      ]},
-      { title: 'Look', controls: [
-        { key: 'backgroundColor', label: 'Background color', type: 'color' },
-        { key: 'objectColor', label: 'Object color', type: 'color' },
-        { key: 'panelGradientColor', label: 'Panel gradient color', type: 'color' },
-        { key: 'panelGradientAmount', label: 'Panel gradient amount', type: 'range', min: 0, max: 1, step: 0.01 },
-        { key: 'panelGradientDirection', label: 'Panel gradient direction', type: 'select', options: ['horizontal', 'vertical', 'diagonal'] },
-        { key: 'opacity', label: 'Opacity', type: 'range', min: 0.08, max: 1, step: 0.01 },
-        { key: 'gloss', label: 'Gloss', type: 'range', min: 0, max: 1, step: 0.01 },
-        { key: 'backLayer', label: 'Background blur on/off', type: 'checkbox' },
-        { key: 'backLayerOpacity', label: 'Blur layer opacity', type: 'range', min: 0, max: 0.6, step: 0.01, showWhen: () => state.backLayer },
-        { key: 'backLayerBlur', label: 'Blur layer amount', type: 'range', min: 0, max: 1, step: 0.01, showWhen: () => state.backLayer }
-      ]},
-      { title: 'Export', controls: [
-        { label: 'Export JPG', type: 'button', action: exportJPG },
-        { label: 'PNG object only', type: 'button', action: exportPNGObject },
-        { label: 'Record MP4 5s', type: 'button', action: recordVideo }
-      ]}
+    const MAX_BLOBS = 5;
+    const EXPORT_FPS = 30;
+    const DPR_LIMIT = 2.4;
+    const FAMILIES = ["bean", "split", "ribbon", "crop"];
+    const ASPECT_RATIOS = [
+      { value: "1:1", label: "Square", w: 1, h: 1 },
+      { value: "16:9", label: "Widescreen", w: 16, h: 9 },
+      { value: "9:16", label: "Social story", w: 9, h: 16 },
+      { value: "4:3", label: "Classic", w: 4, h: 3 },
+      { value: "3:4", label: "Traditional", w: 3, h: 4 },
+      { value: "3:2", label: "Standard", w: 3, h: 2 },
+      { value: "2:3", label: "Portrait", w: 2, h: 3 },
+      { value: "1:2", label: "Vertical", w: 1, h: 2 },
+      { value: "2:1", label: "Horizontal", w: 2, h: 1 },
+      { value: "4:5", label: "Social post", w: 4, h: 5 }
     ];
 
-    const inputs = new Map();
-    const controlEntries = [];
-    let customTransforms = [];
-    const canvasPresets = {
-      '1:1 Square': [1, 1, 1080, 1080],
-      '16:9 Widescreen': [16, 9, 1280, 720],
-      '9:16 Social story': [9, 16, 1080, 1920],
-      '4:3 Classic': [4, 3, 1200, 900],
-      '3:4 Traditional': [3, 4, 900, 1200],
-      '3:2 Standard': [3, 2, 1200, 800],
-      '2:3 Portrait': [2, 3, 900, 1350],
-      '1:2 Vertical': [1, 2, 720, 1440],
-      '2:1 Horizontal': [2, 1, 1440, 720],
-      '4:5 Social post': [4, 5, 1080, 1350]
+    const PALETTES = [
+      {
+        name: "Palette 01",
+        note: "blush / coral",
+        hexA: "#f0c8c1",
+        hexB: "#eb7778",
+        hexEdge: "#ffffff",
+        colorA: [0.941, 0.784, 0.757],
+        colorB: [0.922, 0.467, 0.471],
+        boundary: [1, 1, 1],
+        strip: "linear-gradient(90deg, #f0c8c1 0 48%, #ffffff 48% 52%, #eb7778 52% 100%)"
+      },
+      {
+        name: "Palette 02",
+        note: "blush / slate",
+        hexA: "#f0c8c1",
+        hexB: "#35556d",
+        hexEdge: "#ffffff",
+        colorA: [0.941, 0.784, 0.757],
+        colorB: [0.208, 0.333, 0.427],
+        boundary: [1, 1, 1],
+        strip: "linear-gradient(90deg, #f0c8c1 0 48%, #ffffff 48% 52%, #35556d 52% 100%)"
+      },
+      {
+        name: "Palette 03",
+        note: "cyan / slate",
+        hexA: "#a7edf8",
+        hexB: "#35556d",
+        hexEdge: "#ffffff",
+        colorA: [0.655, 0.929, 0.973],
+        colorB: [0.208, 0.333, 0.427],
+        boundary: [1, 1, 1],
+        strip: "linear-gradient(90deg, #a7edf8 0 48%, #ffffff 48% 52%, #35556d 52% 100%)"
+      }
+    ];
+
+    const ADVANCED_CONTROLS = {
+      bend: { label: "Bend", min: 0.5, max: 1, step: 0.001 },
+      radius: { label: "Radius", min: 0.25, max: 1.45, step: 0.001 },
+      edgeMin: { label: "Edge Min", min: 0.002, max: 0.08, step: 0.001 },
+      edgeMax: { label: "Edge Max", min: 0.02, max: 0.2, step: 0.001 },
+      blur: { label: "Release Blur", min: 0.005, max: 0.22, step: 0.001 },
+      flowSpeed: { label: "Flow Speed", min: 0, max: 5, step: 0.001 },
+      splitFlow: { label: "Split / Merge", min: 0, max: 3, step: 0.001 },
+      edgeTension: { label: "Edge Grip", min: 0, max: 2, step: 0.001 },
+      grain: { label: "Grain", min: 0, max: 3, step: 0.001 }
     };
-    const rotationPresets = {
-      'front 0deg': [0, 0, 0],
-      'side 90deg': [0, 90, 0],
-      'back 180deg': [0, 180, 0],
-      'flat top 90deg': [90, 0, 0],
-      'roll 90deg': [0, 0, 90]
+
+    const state = {
+      seed: 8173,
+      family: "bean",
+      paletteIndex: 0,
+      basicForm: 0.28,
+      basicMotion: 0.36,
+      animate: true,
+      driftAmplitude: 0.16,
+      canvas: {
+        ratio: "16:9",
+        width: 1280,
+        height: 720
+      },
+      params: {
+        bend: 0.5,
+        radius: 0.8,
+        edgeStrength: 2.5,
+        edgeMin: 0.012,
+        edgeMax: 0.082,
+        blur: 0.095,
+        flowSpeed: 0.48,
+        splitFlow: 0.52,
+        edgeTension: 0.42,
+        grain: 0.75,
+        grainMode: 0
+      },
+      colors: {
+        colorA: [0.941, 0.784, 0.757],
+        colorB: [0.922, 0.467, 0.471],
+        boundary: [1, 1, 1]
+      },
+      blobs: []
     };
-    const cameraAngles = {
-      front: [0, 0, 0],
-      top: [0, 85, 0],
-      side: [90, 0, 0],
-      isometric: [45, 35, 0],
-      perspective: [37, 22, 0]
-    };
 
-    function buildUI() {
-      specs.forEach((section) => {
-        const box = document.createElement('section');
-        box.className = 'section';
-        const sectionEntry = { section, box, controls: [] };
-        const title = document.createElement('h2');
-        title.textContent = section.title;
-        box.append(title);
+    const vertexSource = `#version 300 es
+      precision highp float;
+      layout(location = 0) in vec2 a_position;
+      out vec2 v_uv;
+      void main() {
+        v_uv = a_position * 0.5 + 0.5;
+        gl_Position = vec4(a_position, 0.0, 1.0);
+      }
+    `;
 
-        section.controls.forEach((control) => {
-          const registerControl = (element) => {
-            const entry = { control, element, sectionEntry };
-            sectionEntry.controls.push(entry);
-            controlEntries.push(entry);
-          };
+    const fragmentSource = `#version 300 es
+      precision highp float;
 
-          if (control.type === 'button') {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.textContent = control.label;
-            button.addEventListener('click', control.action);
-            box.append(button);
-            registerControl(button);
-            return;
-          }
+      #define MAX_BLOBS 5
 
-          if (control.type === 'select') {
-            const row = document.createElement('div');
-            row.className = 'select-row';
-            const label = document.createElement('label');
-            label.textContent = control.label;
-            const input = document.createElement('select');
-            control.options.forEach((option) => {
-              const item = document.createElement('option');
-              item.value = option;
-              item.textContent = option;
-              input.append(item);
-            });
-            input.value = state[control.key];
-            input.addEventListener('input', () => {
-              state[control.key] = input.value;
-              onChange(control);
-            });
-            row.append(label, input);
-            box.append(row);
-            inputs.set(control.key, { input, control });
-            registerControl(row);
-            return;
-          }
+      in vec2 v_uv;
+      out vec4 outColor;
 
-          if (control.type === 'color') {
-            const row = document.createElement('div');
-            row.className = 'color-row';
-            const label = document.createElement('label');
-            label.textContent = control.label;
-            const inputsWrap = document.createElement('div');
-            inputsWrap.className = 'color-inputs';
-            const hexInput = document.createElement('input');
-            hexInput.type = 'text';
-            hexInput.value = state[control.key].toUpperCase();
-            hexInput.placeholder = '#RRGGBB';
-            const picker = document.createElement('input');
-            picker.type = 'color';
-            picker.value = state[control.key];
+      uniform vec2 u_resolution;
+      uniform float u_time;
+      uniform float u_seed;
+      uniform int u_family;
+      uniform vec3 u_colorA;
+      uniform vec3 u_colorB;
+      uniform vec3 u_boundaryColor;
+      uniform float u_bend;
+      uniform float u_radius;
+      uniform float u_edgeStrength;
+      uniform float u_edgeMin;
+      uniform float u_edgeMax;
+      uniform float u_blur;
+      uniform float u_flowSpeed;
+      uniform float u_splitFlow;
+      uniform float u_edgeTension;
+      uniform float u_grain;
+      uniform float u_grainMode;
+      uniform float u_driftAmplitude;
+      uniform vec2 u_centers[MAX_BLOBS];
+      uniform vec4 u_blobShape[MAX_BLOBS];
+      uniform vec4 u_blobMotion[MAX_BLOBS];
+      uniform vec3 u_bias;
 
-            const setColor = (value) => {
-              const normalized = normalizeHex(value);
-              if (!normalized) return;
-              state[control.key] = normalized;
-              hexInput.value = normalized.toUpperCase();
-              picker.value = normalized;
-              onChange(control);
-            };
+      float hash12(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+      }
 
-            hexInput.addEventListener('change', () => setColor(hexInput.value));
-            hexInput.addEventListener('keydown', (event) => {
-              if (event.key === 'Enter') hexInput.blur();
-            });
-            picker.addEventListener('input', () => setColor(picker.value));
-            inputsWrap.append(hexInput, picker);
-            row.append(label, inputsWrap);
-            box.append(row);
-            inputs.set(control.key, { input: hexInput, picker, control });
-            registerControl(row);
-            return;
-          }
+      float valueNoise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+        float a = hash12(i);
+        float b = hash12(i + vec2(1.0, 0.0));
+        float c = hash12(i + vec2(0.0, 1.0));
+        float d = hash12(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+      }
 
-          if (control.type === 'checkbox') {
-            const row = document.createElement('div');
-            row.className = 'check-row';
-            const label = document.createElement('label');
-            label.textContent = control.label;
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = state[control.key];
-            input.addEventListener('input', () => {
-              state[control.key] = input.checked;
-              onChange(control);
-            });
-            row.append(label, input);
-            box.append(row);
-            inputs.set(control.key, { input, control });
-            registerControl(row);
-            return;
-          }
-
-          const row = document.createElement('div');
-          row.className = 'control';
-          const label = document.createElement('label');
-          label.textContent = control.label;
-          const value = document.createElement('span');
-          value.className = 'value';
-          value.textContent = formatValue(state[control.key]);
-          const input = document.createElement('input');
-          input.type = 'range';
-          input.min = control.min;
-          input.max = control.max;
-          input.step = control.step;
-          input.value = state[control.key];
-          input.addEventListener('input', () => {
-            state[control.key] = Number(input.value);
-            value.textContent = formatValue(state[control.key]);
-            onChange(control);
-          });
-          row.append(label, value, input);
-          box.append(row);
-          inputs.set(control.key, { input, value, control });
-          registerControl(row);
-        });
-
-        ui.append(box);
-        controlEntries.push(sectionEntry);
-      });
-    }
-
-    function applyTheme() {
-      document.body.classList.toggle('dark', !state.lightUI);
-      themeToggle.textContent = state.lightUI ? 'Dark UI' : 'Light UI';
-      themeToggle.setAttribute('aria-pressed', String(state.lightUI));
-    }
-
-    function refreshConditionalUI() {
-      controlEntries.forEach((entry) => {
-        if (entry.section && entry.box) {
-          const sectionVisible = entry.section.showWhen ? entry.section.showWhen() : true;
-          const hasVisibleControl = entry.controls.some((controlEntry) => !controlEntry.element.classList.contains('is-hidden'));
-          entry.box.classList.toggle('is-hidden', !sectionVisible || !hasVisibleControl);
-          return;
+      float fbm(vec2 p) {
+        float v = 0.0;
+        float a = 0.5;
+        mat2 rot = mat2(0.8, -0.6, 0.6, 0.8);
+        for (int i = 0; i < 4; i++) {
+          v += a * valueNoise(p);
+          p = rot * p * 2.03 + 13.17;
+          a *= 0.52;
         }
-        const visible = entry.control.showWhen ? entry.control.showWhen() : true;
-        entry.element.classList.toggle('is-hidden', !visible);
-      });
+        return v;
+      }
+
+      vec2 warp(vec2 p) {
+        float drive = max(0.02, u_flowSpeed) * 0.24;
+        float large = 0.52 + u_bend * 2.75;
+        float sweep = sin((p.y + u_seed * 0.017) * large + u_time * drive);
+        p.x += sweep * u_bend * 0.34;
+        p.y += sin((p.x + sweep * 0.42 - u_seed * 0.011) * (large * 0.72) - u_time * drive * 0.84) * u_bend * 0.26;
+        p += vec2(
+          sin(p.y * 0.92 + u_time * drive * 0.38 + u_seed * 0.03),
+          cos(p.x * 0.82 - u_time * drive * 0.33 + u_seed * 0.02)
+        ) * u_bend * 0.08;
+        return p;
+      }
+
+      float blobContribution(vec2 p, int i) {
+        vec2 center = u_centers[i];
+        vec4 shape = u_blobShape[i];
+        vec4 motion = u_blobMotion[i];
+
+        float speed = max(0.02, u_flowSpeed) * 0.72;
+        float breath = sin(u_time * speed * 1.7 + motion.z);
+        float converge = sin(u_time * speed + motion.w) * 0.5 + 0.5;
+        float ease = smoothstep(0.0, 1.0, converge);
+        vec2 orbit = vec2(
+          sin(u_time * speed * (0.62 + motion.x * 0.42) + motion.z),
+          cos(u_time * speed * (0.54 + motion.y * 0.38) + motion.w)
+        );
+        vec2 cross = vec2(
+          sin(u_time * speed * (0.21 + motion.y * 0.18) + motion.w * 1.37),
+          cos(u_time * speed * (0.24 + motion.x * 0.16) + motion.z * 1.19)
+        );
+        vec2 focus = vec2(
+          sin(u_time * speed * 0.31 + u_seed * 0.013) * 0.18,
+          cos(u_time * speed * 0.27 + u_seed * 0.017) * 0.14
+        );
+        float drive = u_driftAmplitude * (0.35 + u_splitFlow * 0.95);
+        float convergePull = (ease - 0.5) * 0.72 * drive;
+        vec2 drift = (orbit * 0.96 + cross * 0.48) * drive;
+        center += drift + (focus - center) * convergePull;
+
+        float angle = shape.z + sin(u_time * speed * 0.45 + motion.w) * 0.52 * drive;
+        float ca = cos(angle);
+        float sa = sin(angle);
+        mat2 rot = mat2(ca, -sa, sa, ca);
+        vec2 q = rot * (p - center);
+        float dynamicStretch = 1.0 + sin(u_time * speed * 0.64 + motion.z * 1.41) * 0.18 * min(2.2, u_splitFlow);
+        q.x *= shape.w * dynamicStretch;
+        q.y /= max(0.2, shape.w / dynamicStretch);
+
+        float r = max(0.08, u_radius * shape.x * (1.0 + breath * 0.004 * (0.35 + drive)));
+        float weightPulse = 1.0 + sin(u_time * speed * 0.9 + motion.w * 1.7) * 0.22 * min(2.4, u_splitFlow);
+        return shape.y * weightPulse * exp(-dot(q, q) / (r * r));
+      }
+
+      void main() {
+        vec2 uv = v_uv;
+        float aspect = u_resolution.x / max(1.0, u_resolution.y);
+        vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.0;
+        vec2 w = warp(p);
+
+        float flowSpeed = max(0.02, u_flowSpeed) * 0.52;
+        vec2 biasFlow = vec2(
+          sin(u_time * flowSpeed + u_seed * 0.019),
+          cos(u_time * flowSpeed * 0.83 + u_seed * 0.023)
+        ) * u_splitFlow * 0.28;
+        float splitWave = sin(u_time * flowSpeed * 1.62 + u_seed * 0.02) * u_splitFlow * 0.13;
+        float field = dot(w, u_bias.xy + biasFlow) * u_bias.z - 0.62 + splitWave;
+
+        for (int i = 0; i < MAX_BLOBS; i++) {
+          field += blobContribution(w, i);
+        }
+
+        field += (fbm(w * 0.72 + u_seed * 0.006) - 0.5) * 0.006;
+
+        float px = 1.25 / min(u_resolution.x, u_resolution.y);
+        float aa = fwidth(field) * 0.72 + px;
+        float mask = smoothstep(-aa, aa, field);
+        float distanceToLine = abs(field);
+        float edgeGrip = smoothstep(0.0, 1.0, sin(u_time * flowSpeed * 2.08 + u_seed * 0.031) * 0.5 + 0.5);
+        edgeGrip = clamp(mix(0.42, edgeGrip, u_edgeTension), 0.0, 1.0);
+        float thinEdge = min(u_edgeMin, u_edgeMax);
+        float broadEdge = max(u_edgeMin, u_edgeMax);
+        float dynamicThickness = mix(broadEdge, thinEdge, edgeGrip);
+        float dynamicBlur = mix(u_blur * 2.25, max(aa * 2.0, u_blur * 0.2), edgeGrip);
+        float strokeCore = max(aa * 1.6, dynamicThickness * mix(0.42, 0.82, edgeGrip));
+        float blurRadius = max(aa * 2.2, dynamicBlur);
+        float blurT = clamp((distanceToLine - strokeCore) / blurRadius, 0.0, 1.0);
+        float progressiveFade = blurT * blurT * blurT * (blurT * (blurT * 6.0 - 15.0) + 10.0);
+        float strokeAlpha = (1.0 - progressiveFade) * clamp(u_edgeStrength * 1.25, 0.0, 1.0);
+
+        vec3 baseColor = mix(u_colorA, u_colorB, mask);
+        float tonal = (fbm(w * 1.3 + vec2(8.1, 2.4)) - 0.5) * 0.035;
+        baseColor += tonal;
+
+        float vignette = smoothstep(1.35, 0.18, length((uv - 0.5) * vec2(aspect, 1.0)));
+        baseColor *= mix(0.88, 1.035, vignette);
+
+        float grainFrame = mix(0.0, fract(u_time) * 71.0, step(0.5, u_grainMode));
+        float grain = hash12(uv * u_resolution.xy + grainFrame) - 0.5;
+        baseColor += grain * u_grain * 0.115;
+        vec3 color = mix(baseColor, u_boundaryColor, strokeAlpha);
+
+        outColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+      }
+    `;
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
     }
 
-    function formatValue(value) {
-      return Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function format(value) {
+      return Number(value).toFixed(3);
     }
 
     function normalizeHex(value) {
-      const raw = String(value).trim();
-      const withHash = raw.startsWith('#') ? raw : `#${raw}`;
-      if (/^#[0-9a-fA-F]{6}$/.test(withHash)) return withHash.toLowerCase();
-      if (/^#[0-9a-fA-F]{3}$/.test(withHash)) {
-        return `#${withHash[1]}${withHash[1]}${withHash[2]}${withHash[2]}${withHash[3]}${withHash[3]}`.toLowerCase();
+      const clean = String(value).trim().replace(/^#/, "");
+      if (/^[0-9a-fA-F]{3}$/.test(clean)) {
+        return `#${clean.split("").map((char) => char + char).join("").toUpperCase()}`;
+      }
+      if (/^[0-9a-fA-F]{6}$/.test(clean)) {
+        return `#${clean.toUpperCase()}`;
       }
       return null;
     }
 
-    function syncUI() {
-      const selectedEntry = inputs.get('selectedItem');
-      if (selectedEntry) selectedEntry.input.max = Math.max(0, state.count - 1);
-      inputs.forEach((entry, key) => {
-        const value = state[key];
-        if (entry.input.type === 'checkbox') {
-          entry.input.checked = Boolean(value);
-        } else if (entry.picker) {
-          entry.input.value = String(value).toUpperCase();
-          entry.picker.value = value;
-        } else {
-          entry.input.value = value;
-        }
-        if (entry.value) entry.value.textContent = formatValue(value);
-      });
+    function hexToRgb(hex) {
+      const normalized = normalizeHex(hex) || "#000000";
+      const clean = normalized.replace("#", "");
+      const value = Number.parseInt(clean, 16);
+      return [
+        ((value >> 16) & 255) / 255,
+        ((value >> 8) & 255) / 255,
+        (value & 255) / 255
+      ];
     }
 
-    function defaultCustomTransform(index) {
-      const half = (Math.max(1, state.count) - 1) / 2;
+    function componentToHex(value) {
+      return Math.round(clamp(value, 0, 1) * 255).toString(16).padStart(2, "0");
+    }
+
+    function rgbToHex(rgb) {
+      return `#${componentToHex(rgb[0])}${componentToHex(rgb[1])}${componentToHex(rgb[2])}`.toUpperCase();
+    }
+
+    function paletteStrip(palette) {
+      const a = rgbToHex(palette.colorA);
+      const b = rgbToHex(palette.colorB);
+      const edge = rgbToHex(palette.boundary);
+      return `linear-gradient(90deg, ${a} 0 48%, ${edge} 48% 52%, ${b} 52% 100%)`;
+    }
+
+    function updatePaletteColor(slot, hex) {
+      const normalized = normalizeHex(hex);
+      if (!normalized) return false;
+      const rgb = hexToRgb(normalized);
+      const palette = PALETTES[state.paletteIndex];
+      if (slot === "colorA") state.colors.colorA = rgb;
+      if (slot === "colorB") state.colors.colorB = rgb;
+      if (slot === "boundary") state.colors.boundary = rgb;
+
+      if (palette) {
+        palette[slot] = rgb.slice();
+        if (slot === "colorA") palette.hexA = normalized;
+        if (slot === "colorB") palette.hexB = normalized;
+        if (slot === "boundary") palette.hexEdge = normalized;
+        palette.strip = paletteStrip(palette);
+      }
+      return true;
+    }
+
+    function mulberry32(seed) {
+      let a = seed >>> 0;
+      return function random() {
+        a += 0x6D2B79F5;
+        let t = a;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function getSelectedRatio() {
+      return ASPECT_RATIOS.find((ratio) => ratio.value === state.canvas.ratio) || ASPECT_RATIOS[1];
+    }
+
+    function getCanvasSize() {
       return {
-        x: (index - half) * 0.72,
-        y: 0,
-        z: 0,
-        rx: 0,
-        ry: 0,
-        rz: 0,
-        scale: 1
+        width: clamp(Math.round(state.canvas.width), 64, 8192),
+        height: clamp(Math.round(state.canvas.height), 64, 8192)
       };
     }
 
-    function ensureCustomTransforms() {
-      for (let i = customTransforms.length; i < state.count; i++) {
-        customTransforms[i] = defaultCustomTransform(i);
-      }
-      customTransforms.length = state.count;
-      state.selectedItem = Math.min(Math.max(0, Math.round(state.selectedItem)), Math.max(0, state.count - 1));
+    function setCanvasFromWidth(width) {
+      const ratio = getSelectedRatio();
+      state.canvas.width = clamp(Math.round(width || 64), 64, 8192);
+      state.canvas.height = clamp(Math.round(state.canvas.width * ratio.h / ratio.w), 64, 8192);
     }
 
-    function loadSelectedCustomTransform() {
-      ensureCustomTransforms();
-      const data = customTransforms[state.selectedItem] || defaultCustomTransform(state.selectedItem);
-      state.customX = data.x;
-      state.customY = data.y;
-      state.customZ = data.z;
-      state.customRotX = data.rx;
-      state.customRotY = data.ry;
-      state.customRotZ = data.rz;
-      state.customScale = data.scale;
+    function setCanvasFromHeight(height) {
+      const ratio = getSelectedRatio();
+      state.canvas.height = clamp(Math.round(height || 64), 64, 8192);
+      state.canvas.width = clamp(Math.round(state.canvas.height * ratio.w / ratio.h), 64, 8192);
     }
 
-    function saveSelectedCustomTransform() {
-      ensureCustomTransforms();
-      customTransforms[state.selectedItem] = {
-        x: state.customX,
-        y: state.customY,
-        z: state.customZ,
-        rx: state.customRotX,
-        ry: state.customRotY,
-        rz: state.customRotZ,
-        scale: state.customScale
-      };
-    }
-
-    function resetSelectedCustom() {
-      ensureCustomTransforms();
-      customTransforms[state.selectedItem] = defaultCustomTransform(state.selectedItem);
-      loadSelectedCustomTransform();
-      syncUI();
-      updateLayout();
-    }
-
-    function resetAllCustom() {
-      customTransforms = [];
-      ensureCustomTransforms();
-      loadSelectedCustomTransform();
-      syncUI();
-      updateLayout();
-    }
-
-    function onChange(control) {
-      if (control.customSelect) {
-        state.selectedItem = Math.round(state.selectedItem);
-        loadSelectedCustomTransform();
-        syncUI();
-      }
-      if (control.customTransform) {
-        saveSelectedCustomTransform();
-      }
-      if (control.key === 'layout' && state.layout === 'custom') {
-        ensureCustomTransforms();
-        loadSelectedCustomTransform();
-        syncUI();
-      }
-      if (control.rotationPreset && state.rotationPreset !== 'custom') {
-        const values = rotationPresets[state.rotationPreset];
-        if (values) {
-          [state.shapeRotX, state.shapeRotY, state.shapeRotZ] = values;
-          syncUI();
-        }
-      }
-      if (['shapeRotX', 'shapeRotY', 'shapeRotZ'].includes(control.key)) {
-        state.rotationPreset = 'custom';
-        syncUI();
-      }
-      if (control.key === 'cameraPreset' && state.cameraPreset !== 'custom') {
-        const values = cameraAngles[state.cameraPreset];
-        if (values) {
-          [state.cameraYaw, state.cameraPitch, state.cameraRoll] = values;
-          syncUI();
-        }
-      }
-      if (control.cameraManual) {
-        state.cameraPreset = 'custom';
-        syncUI();
-      }
-      if (control.rebuild) rebuildItems();
-      if (control.camera) moveCamera(state.cameraPreset, true);
-      if (control.canvas) resize();
-      applyLook();
-      applyLayoutAxis();
-      updateLayout();
-      refreshConditionalUI();
-    }
-
-    function applyLayoutAxis() {
-      layoutGroup.rotation.order = 'YXZ';
-      if (state.layout === 'custom') {
-        layoutGroup.rotation.set(0, 0, 0);
-        return;
-      }
-      layoutGroup.rotation.set(
-        THREE.MathUtils.degToRad(state.axisRotX),
-        THREE.MathUtils.degToRad(state.axisRotY),
-        THREE.MathUtils.degToRad(state.axisRotZ)
-      );
-    }
-
-    function roundedRectShape(width, height, radius) {
-      const x = -width / 2;
-      const y = -height / 2;
-      const r = Math.min(radius, width * .45, height * .45);
-      const shape = new THREE.Shape();
-      shape.moveTo(x + r, y);
-      shape.lineTo(x + width - r, y);
-      shape.quadraticCurveTo(x + width, y, x + width, y + r);
-      shape.lineTo(x + width, y + height - r);
-      shape.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-      shape.lineTo(x + r, y + height);
-      shape.quadraticCurveTo(x, y + height, x, y + height - r);
-      shape.lineTo(x, y + r);
-      shape.quadraticCurveTo(x, y, x + r, y);
-      return shape;
-    }
-
-    function getPanelDimensions() {
-      const aspect = Math.max(0.05, state.panelAspect);
-      const width = state.panelSize * Math.sqrt(aspect);
-      const height = state.panelSize / Math.sqrt(aspect);
-      return { width, height };
-    }
-
-    function createDiscGeometry(width, height) {
-      if (state.discInflate <= 0.001) {
-        const flat = new THREE.CylinderGeometry(0.5, 0.5, state.thickness, 128, 1, false);
-        flat.rotateX(Math.PI / 2);
-        flat.scale(width, height, 1);
-        flat.computeVertexNormals();
-        return flat;
-      }
-
-      const minDimension = Math.min(width, height);
-      const halfDepth = state.thickness * 0.5 + minDimension * 0.16 * state.discInflate;
-      const profile = [];
-      const profileSteps = 34;
-      for (let i = 0; i <= profileSteps; i++) {
-        const angle = (i / profileSteps) * Math.PI;
-        const radius = Math.sin(angle) * 0.5;
-        const depth = Math.cos(angle) * halfDepth;
-        profile.push(new THREE.Vector2(radius, depth));
-      }
-
-      const geometry = new THREE.LatheGeometry(profile, 128);
-      geometry.rotateX(Math.PI / 2);
-      geometry.scale(width, height, 1);
-      geometry.computeVertexNormals();
-      return geometry;
-    }
-
-    function createMainGeometry() {
-      const { width, height } = getPanelDimensions();
-      if (state.shape === 'disc') {
-        return createDiscGeometry(width, height);
-      }
-
-      const cornerRadius = Math.min(width, height) * state.cornerRadius;
-      const geometry = new THREE.ExtrudeGeometry(roundedRectShape(width, height, cornerRadius), {
-        depth: state.thickness,
-        bevelEnabled: true,
-        bevelSize: Math.min(0.035, state.thickness * 0.42),
-        bevelThickness: Math.min(0.035, state.thickness * 0.42),
-        bevelSegments: 5,
-        curveSegments: 16,
-        steps: 1
-      });
-      geometry.center();
-      geometry.computeVertexNormals();
-      return geometry;
-    }
-
-    function rebuildItems() {
-      items.forEach((item) => layoutGroup.remove(item.group));
-      items = [];
-      if (sharedGeometry) sharedGeometry.dispose();
-      sharedGeometry = createMainGeometry();
-      ensureCustomTransforms();
-      loadSelectedCustomTransform();
-      syncUI();
-
-      for (let i = 0; i < state.count; i++) {
-        const group = new THREE.Group();
-        group.name = `itemGroup_${i}`;
-        const pivot = new THREE.Group();
-        pivot.name = `shapePivot_${i}`;
-
-        const fill = new THREE.Mesh(sharedGeometry, fillMaterial);
-        fill.name = `fill_${i}`;
-        fill.scale.setScalar(0.985);
-        fill.renderOrder = i * 3;
-
-        const backLayer = new THREE.Mesh(sharedGeometry, backLayerMaterial);
-        backLayer.name = `backLayer_${i}`;
-        backLayer.visible = state.backLayer && state.backLayerOpacity > 0;
-        backLayer.position.z = -state.thickness * (0.18 + state.backLayerBlur * 0.25);
-        backLayer.scale.setScalar(1);
-        backLayer.renderOrder = i * 3;
-
-        const glass = new THREE.Mesh(sharedGeometry, glassMaterial);
-        glass.name = `mesh_${i}`;
-        glass.renderOrder = i * 3 + 1;
-
-        pivot.add(backLayer, fill, glass);
-        group.add(pivot);
-        layoutGroup.add(group);
-        items.push({ group, pivot, backLayer, fill, glass, basePosition: new THREE.Vector3(), baseRotation: new THREE.Euler() });
-      }
-
-      applyLayoutAxis();
-      updateLayout();
-    }
-
-    function updateLayout() {
-      const count = Math.max(1, state.count);
-      const half = (count - 1) / 2;
-      const arcSpan = Math.PI * 1.18;
-      const radius = 3.0 * state.spacing;
-      const startAngle = THREE.MathUtils.degToRad(state.layoutStartAngle);
-
-      const facingRotation = (angle) => {
-        if (state.layoutFacing === 'same direction') return 0;
-        if (state.layoutFacing === 'inward') return -angle;
-        if (state.layoutFacing === 'outward') return -angle + Math.PI;
-        return -angle + Math.PI / 2;
-      };
-
-      items.forEach((item, i) => {
-        const t = count === 1 ? 0.5 : i / (count - 1);
-        const closedT = i / count;
-        const centered = i - half;
-        const position = item.basePosition;
-        const rotation = item.baseRotation;
-        position.set(0, 0, 0);
-        rotation.set(0, 0, 0);
-        item.group.scale.setScalar(1);
-
-        if (state.layout === 'custom') {
-          const data = customTransforms[i] || defaultCustomTransform(i);
-          position.set(data.x, data.y, data.z);
-          rotation.set(
-            THREE.MathUtils.degToRad(data.rx),
-            THREE.MathUtils.degToRad(data.ry),
-            THREE.MathUtils.degToRad(data.rz)
-          );
-          item.group.scale.setScalar(data.scale);
-        }
-
-        if (state.layout === 'line') {
-          const wave = Math.sin((t - 0.5) * Math.PI * 2 * state.lineWaveFrequency) * state.lineWaveAmount;
-          position.set(centered * state.lineSpacingX * state.spacing, 0, centered * state.lineSpacingZ * state.spacing + wave);
-          rotation.y = state.layoutFacing === 'same direction' ? 0 : -0.18 - wave * 0.08;
-        }
-
-        if (state.layout === 'arc') {
-          const a = startAngle + (t - 0.5) * arcSpan;
-          position.set(Math.sin(a) * radius, 0, Math.cos(a) * radius * 0.48);
-          rotation.y = facingRotation(a);
-        }
-
-        if (state.layout === 'ring') {
-          const a = startAngle + closedT * Math.PI * 2;
-          const ringRadius = 2.75 * state.spacing;
-          position.set(Math.cos(a) * ringRadius, 0, Math.sin(a) * ringRadius);
-          rotation.y = facingRotation(a);
-        }
-
-        item.group.position.copy(position);
-        item.group.rotation.copy(rotation);
-      });
-    }
-
-    function applyLook() {
-      const gloss = state.gloss;
-      scene.background.set(state.backgroundColor);
-      backdropMaterial.uniforms.base.value.set(state.backgroundColor);
-      backdropMaterial.uniforms.top.value.set(state.backgroundColor).lerp(new THREE.Color('#ffffff'), 0.28);
-      const autoEdge = new THREE.Color(state.objectColor).lerp(new THREE.Color('#ffffff'), 0.35);
-      rimLight.color.copy(autoEdge);
-
-      glassMaterial.color.set(state.objectColor);
-      glassMaterial.opacity = state.opacity;
-      glassMaterial.transmission = 0.25 + gloss * 0.7;
-      glassMaterial.roughness = 0.55 - gloss * 0.5;
-      glassMaterial.reflectivity = 0.2 + gloss * 0.8;
-      glassMaterial.clearcoat = 0.35 + gloss * 0.65;
-      glassMaterial.clearcoatRoughness = 0.28 - gloss * 0.24;
-      glassMaterial.thickness = 0.25 + gloss * 0.8;
-      glassMaterial.userData.uniforms.panelBaseColor.value.set(state.objectColor);
-      glassMaterial.userData.uniforms.panelGradientColor.value.set(state.panelGradientColor);
-      glassMaterial.userData.uniforms.panelGradientAmount.value = state.panelGradientAmount;
-      glassMaterial.userData.uniforms.panelGradientDirection.value = { horizontal: 0, vertical: 1, diagonal: 2 }[state.panelGradientDirection] ?? 2;
-
-      fillMaterial.color.set(state.objectColor);
-      fillMaterial.opacity = Math.min(0.28, 0.06 + state.opacity * 0.16);
-      backLayerMaterial.color.set(state.objectColor).lerp(new THREE.Color(state.panelGradientColor), 0.45);
-      backLayerMaterial.opacity = state.backLayer ? state.backLayerOpacity : 0;
-      items.forEach((item) => {
-        item.backLayer.visible = state.backLayer && state.backLayerOpacity > 0;
-        item.backLayer.material.opacity = state.backLayer ? state.backLayerOpacity : 0;
-        item.backLayer.material.color.copy(backLayerMaterial.color);
-        item.backLayer.position.z = -state.thickness * (0.18 + state.backLayerBlur * 0.25);
-        item.backLayer.scale.setScalar(1);
-      });
-    }
-
-    function updateCameraProjection() {
-      camera.fov = THREE.MathUtils.lerp(30, 78, state.perspectiveStrength);
-      camera.updateProjectionMatrix();
-    }
-
-    function cameraViewFor(preset) {
-      const perspectiveDolly = THREE.MathUtils.lerp(1.15, 0.55, state.perspectiveStrength);
-      const distance = 8.5 * perspectiveDolly / state.zoom;
-      const upY = new THREE.Vector3(0, 1, 0);
-      if (preset === 'front') {
-        return { position: new THREE.Vector3(0, 0, distance), up: upY };
-      }
-      if (preset === 'top') {
-        return { position: new THREE.Vector3(0, distance, 0), up: new THREE.Vector3(0, 0, -1) };
-      }
-      if (preset === 'side') {
-        return { position: new THREE.Vector3(distance, 0, 0), up: upY };
-      }
-      if (preset === 'isometric') {
-        return { position: new THREE.Vector3(distance * 0.72, distance * 0.72, distance * 0.72), up: upY };
-      }
-      if (preset === 'custom') {
-        const yaw = THREE.MathUtils.degToRad(state.cameraYaw);
-        const pitch = THREE.MathUtils.degToRad(state.cameraPitch);
-        const horizontal = Math.cos(pitch) * distance;
-        return {
-          position: new THREE.Vector3(
-            Math.sin(yaw) * horizontal,
-            Math.sin(pitch) * distance,
-            Math.cos(yaw) * horizontal
-          ),
-          up: upY
-        };
-      }
-      return { position: new THREE.Vector3(distance * 0.62, distance * 0.36, distance * 0.82), up: upY };
-    }
-
-    function moveCamera(preset, smooth) {
-      updateCameraProjection();
-      const view = cameraViewFor(preset);
-      const helper = camera.clone();
-      helper.position.copy(view.position);
-      helper.up.copy(view.up);
-      helper.lookAt(target);
-      applyCameraRoll(helper, state.cameraRoll);
-      if (!smooth) {
-        camera.position.copy(view.position);
-        camera.up.copy(view.up);
-        camera.quaternion.copy(helper.quaternion);
-        controls.target.copy(target);
-        controls.update();
-        return;
-      }
-      cameraTween = {
-        from: camera.position.clone(),
-        to: view.position,
-        fromQuaternion: camera.quaternion.clone(),
-        toQuaternion: helper.quaternion.clone(),
-        fromUp: camera.up.clone(),
-        toUp: view.up,
-        time: 0,
-        duration: 0.7
-      };
-    }
-
-    function applyCameraRoll(cam, degrees) {
-      if (!degrees) return;
-      const forward = new THREE.Vector3();
-      cam.getWorldDirection(forward);
-      const rollQuat = new THREE.Quaternion().setFromAxisAngle(forward.normalize(), THREE.MathUtils.degToRad(degrees));
-      cam.quaternion.premultiply(rollQuat);
-      cam.up.applyQuaternion(rollQuat).normalize();
-    }
-
-    function updateCameraTween(dt) {
-      if (!cameraTween) return;
-      cameraTween.time += dt;
-      const raw = Math.min(1, cameraTween.time / cameraTween.duration);
-      const t = raw * raw * (3 - 2 * raw);
-      camera.position.lerpVectors(cameraTween.from, cameraTween.to, t);
-      camera.quaternion.slerpQuaternions(cameraTween.fromQuaternion, cameraTween.toQuaternion, t);
-      camera.up.lerpVectors(cameraTween.fromUp, cameraTween.toUp, t).normalize();
-      controls.target.copy(target);
-      controls.update();
-      if (raw >= 1) {
-        camera.position.copy(cameraTween.to);
-        camera.quaternion.copy(cameraTween.toQuaternion);
-        camera.up.copy(cameraTween.toUp);
-        cameraTween = null;
-      }
-    }
-
-    function selectedCanvasPreset() {
-      return canvasPresets[state.canvasSize] || canvasPresets['16:9 Widescreen'];
-    }
-
-    function resize() {
-      const [ratioW, ratioH] = selectedCanvasPreset();
-      const availableW = Math.max(1, view.clientWidth - 44);
-      const availableH = Math.max(1, view.clientHeight - 44);
-      const ratio = ratioW / ratioH;
-      let w = availableW;
-      let h = w / ratio;
-      if (h > availableH) {
-        h = availableH;
-        w = h * ratio;
-      }
-      renderer.setSize(Math.round(w), Math.round(h), false);
-      canvas.style.width = `${Math.round(w)}px`;
-      canvas.style.height = `${Math.round(h)}px`;
-      camera.aspect = w / Math.max(1, h);
-      updateCameraProjection();
-    }
-
-    function downloadDataURL(dataURL, filename) {
-      const link = document.createElement('a');
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
       link.download = filename;
-      link.href = dataURL;
+      document.body.appendChild(link);
       link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    function renderStill({ transparent = false } = {}) {
-      const wasVisible = backdropMesh.visible;
-      const oldBackground = scene.background;
-      if (transparent) {
-        backdropMesh.visible = false;
-        scene.background = null;
-        renderer.setClearColor(0x000000, 0);
+    function mapBasicForm(value) {
+      state.params.bend = lerp(0.5, 0.96, value);
+      state.params.radius = lerp(1.06, 0.72, value);
+      state.params.edgeMin = lerp(0.008, 0.018, value);
+      state.params.edgeMax = lerp(0.058, 0.112, value);
+    }
+
+    function mapBasicMotion(value) {
+      state.params.flowSpeed = lerp(0.08, 3.2, value);
+      state.params.splitFlow = lerp(0.12, 1.9, value);
+      state.params.edgeTension = lerp(0.08, 1.45, value);
+      state.driftAmplitude = lerp(0.07, 0.52, value);
+    }
+
+    function randomRange(random, min, max) {
+      return lerp(min, max, random());
+    }
+
+    function chooseFamily(seed) {
+      return FAMILIES[Math.abs(seed) % FAMILIES.length];
+    }
+
+    function createBlob(center, scale, weight, rotation, stretch, random, drift = 1) {
+      return {
+        center: [
+          center[0] + randomRange(random, -0.055, 0.055) * drift,
+          center[1] + randomRange(random, -0.055, 0.055) * drift
+        ],
+        scale: scale * randomRange(random, 0.94, 1.07),
+        weight: weight * randomRange(random, 0.96, 1.04),
+        rotation: rotation + randomRange(random, -0.16, 0.16),
+        stretch: stretch * randomRange(random, 0.92, 1.1),
+        motion: [random(), random(), random() * Math.PI * 2, random() * Math.PI * 2]
+      };
+    }
+
+    function generateBlobs() {
+      const random = mulberry32(state.seed);
+      const family = state.family;
+      let templates;
+      let bias;
+
+      if (family === "split") {
+        const vertical = random() > 0.5;
+        const s = vertical ? 1 : 0;
+        templates = [
+          [[s ? -0.5 : -0.92, s ? -0.72 : -0.2], 1.02, 1.02, s ? 0.2 : 1.35, 1.65],
+          [[s ? -0.1 : -0.28, s ? -0.15 : 0.08], 0.9, 0.92, s ? -0.15 : 1.48, 1.55],
+          [[s ? 0.35 : 0.36, s ? 0.42 : 0.18], 0.78, 0.78, s ? 0.18 : 1.35, 1.38],
+          [[s ? 0.76 : 0.94, s ? 0.88 : 0.26], 0.68, 0.55, s ? -0.08 : 1.45, 1.42],
+          [[s ? 0.14 : 0.16, s ? -1.08 : -0.82], 0.72, -0.22, s ? 0.1 : 1.2, 1.2]
+        ];
+        bias = [vertical ? 0.22 : -0.05, vertical ? -0.08 : 0.24, randomRange(random, 0.42, 0.72)];
+      } else if (family === "ribbon") {
+        templates = [
+          [[-0.7, -0.38], 0.76, 0.88, -0.62, 1.85],
+          [[-0.22, 0.22], 0.68, -0.42, 0.76, 1.7],
+          [[0.18, -0.05], 0.76, 0.82, -0.4, 1.65],
+          [[0.62, 0.38], 0.64, -0.32, 0.7, 1.58],
+          [[0.02, 0.0], 0.72, 0.48, 0.2, 1.25]
+        ];
+        bias = [randomRange(random, -0.18, 0.18), randomRange(random, -0.1, 0.18), randomRange(random, 0.18, 0.38)];
+      } else if (family === "crop") {
+        templates = [
+          [[-0.88, 0.02], 1.2, 1.05, 0.24, 1.36],
+          [[-0.42, -0.44], 0.88, 0.64, -0.28, 1.42],
+          [[-0.3, 0.48], 0.82, 0.58, 0.42, 1.28],
+          [[0.38, 0.0], 0.62, -0.26, -0.1, 1.2],
+          [[0.8, -0.72], 0.74, 0.24, 0.4, 1.08]
+        ];
+        bias = [randomRange(random, -0.3, 0.08), randomRange(random, -0.16, 0.16), randomRange(random, 0.24, 0.48)];
+      } else {
+        templates = [
+          [[-0.34, -0.12], 0.88, 0.92, -0.16, 1.35],
+          [[0.2, 0.08], 0.74, 0.8, 0.24, 1.3],
+          [[-0.02, 0.38], 0.58, 0.34, -0.52, 1.25],
+          [[0.08, -0.42], 0.56, 0.28, 0.4, 1.18],
+          [[0.56, -0.02], 0.52, -0.18, -0.18, 1.1]
+        ];
+        bias = [randomRange(random, -0.12, 0.12), randomRange(random, -0.1, 0.1), randomRange(random, 0.08, 0.28)];
       }
-      renderer.render(scene, camera);
-      const dataURL = renderer.domElement.toDataURL(transparent ? 'image/png' : 'image/jpeg', transparent ? 1 : 0.94);
-      if (transparent) {
-        backdropMesh.visible = wasVisible;
-        scene.background = oldBackground;
-        renderer.setClearColor(0x000000, 1);
-        renderer.render(scene, camera);
+
+      state.blobs = templates.map((item) => createBlob(item[0], item[1], item[2], item[3], item[4], random, family === "crop" ? 1.35 : 1));
+      state.bias = bias;
+    }
+
+    class FlowRenderer {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.gl = canvas.getContext("webgl2", {
+          alpha: false,
+          antialias: false,
+          preserveDrawingBuffer: true
+        });
+        if (!this.gl) {
+          this.supported = false;
+          return;
+        }
+        this.supported = true;
+        this.program = this.createProgram(vertexSource, fragmentSource);
+        this.uniforms = this.getUniforms();
+        this.buffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), this.gl.STATIC_DRAW);
+        this.gl.useProgram(this.program);
+        this.gl.enableVertexAttribArray(0);
+        this.gl.vertexAttribPointer(0, 2, this.gl.FLOAT, false, 0, 0);
       }
-      return dataURL;
+
+      createShader(type, source) {
+        const gl = this.gl;
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          throw new Error(gl.getShaderInfoLog(shader) || "Shader compile failed");
+        }
+        return shader;
+      }
+
+      createProgram(vertex, fragment) {
+        const gl = this.gl;
+        const program = gl.createProgram();
+        gl.attachShader(program, this.createShader(gl.VERTEX_SHADER, vertex));
+        gl.attachShader(program, this.createShader(gl.FRAGMENT_SHADER, fragment));
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          throw new Error(gl.getProgramInfoLog(program) || "Program link failed");
+        }
+        return program;
+      }
+
+      getUniforms() {
+        const gl = this.gl;
+        const names = [
+          "u_resolution", "u_time", "u_seed", "u_family", "u_colorA", "u_colorB", "u_boundaryColor",
+          "u_bend", "u_radius", "u_edgeStrength", "u_edgeMin", "u_edgeMax",
+          "u_blur", "u_flowSpeed", "u_splitFlow", "u_edgeTension", "u_grain", "u_grainMode", "u_driftAmplitude",
+          "u_bias"
+        ];
+        const uniforms = Object.fromEntries(names.map((name) => [name, gl.getUniformLocation(this.program, name)]));
+        uniforms.u_centers = gl.getUniformLocation(this.program, "u_centers[0]");
+        uniforms.u_blobShape = gl.getUniformLocation(this.program, "u_blobShape[0]");
+        uniforms.u_blobMotion = gl.getUniformLocation(this.program, "u_blobMotion[0]");
+        return uniforms;
+      }
+
+      resize(width, height, ratio = window.devicePixelRatio || 1) {
+        const dpr = Math.min(DPR_LIMIT, Math.max(1, ratio));
+        const targetWidth = Math.max(1, Math.floor(width * dpr));
+        const targetHeight = Math.max(1, Math.floor(height * dpr));
+        if (this.canvas.width !== targetWidth || this.canvas.height !== targetHeight) {
+          this.canvas.width = targetWidth;
+          this.canvas.height = targetHeight;
+        }
+      }
+
+      render(renderState, time) {
+        if (!this.supported) return;
+        const gl = this.gl;
+        const centers = new Float32Array(MAX_BLOBS * 2);
+        const shapes = new Float32Array(MAX_BLOBS * 4);
+        const motions = new Float32Array(MAX_BLOBS * 4);
+
+        renderState.blobs.forEach((blob, index) => {
+          centers[index * 2] = blob.center[0];
+          centers[index * 2 + 1] = blob.center[1];
+          shapes[index * 4] = blob.scale;
+          shapes[index * 4 + 1] = blob.weight;
+          shapes[index * 4 + 2] = blob.rotation;
+          shapes[index * 4 + 3] = blob.stretch;
+          motions[index * 4] = blob.motion[0];
+          motions[index * 4 + 1] = blob.motion[1];
+          motions[index * 4 + 2] = blob.motion[2];
+          motions[index * 4 + 3] = blob.motion[3];
+        });
+
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        gl.useProgram(this.program);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform2f(this.uniforms.u_resolution, this.canvas.width, this.canvas.height);
+        gl.uniform1f(this.uniforms.u_time, time);
+        gl.uniform1f(this.uniforms.u_seed, renderState.seed);
+        gl.uniform1i(this.uniforms.u_family, FAMILIES.indexOf(renderState.family));
+        gl.uniform3fv(this.uniforms.u_colorA, renderState.colors.colorA);
+        gl.uniform3fv(this.uniforms.u_colorB, renderState.colors.colorB);
+        gl.uniform3fv(this.uniforms.u_boundaryColor, renderState.colors.boundary);
+        gl.uniform1f(this.uniforms.u_bend, renderState.params.bend);
+        gl.uniform1f(this.uniforms.u_radius, renderState.params.radius);
+        gl.uniform1f(this.uniforms.u_edgeStrength, renderState.params.edgeStrength);
+        gl.uniform1f(this.uniforms.u_edgeMin, renderState.params.edgeMin);
+        gl.uniform1f(this.uniforms.u_edgeMax, renderState.params.edgeMax);
+        gl.uniform1f(this.uniforms.u_blur, renderState.params.blur);
+        gl.uniform1f(this.uniforms.u_flowSpeed, renderState.params.flowSpeed);
+        gl.uniform1f(this.uniforms.u_splitFlow, renderState.params.splitFlow);
+        gl.uniform1f(this.uniforms.u_edgeTension, renderState.params.edgeTension);
+        gl.uniform1f(this.uniforms.u_grain, renderState.params.grain);
+        gl.uniform1f(this.uniforms.u_grainMode, renderState.params.grainMode);
+        gl.uniform1f(this.uniforms.u_driftAmplitude, renderState.driftAmplitude);
+        gl.uniform3fv(this.uniforms.u_bias, new Float32Array(renderState.bias || [0, 0, 0.2]));
+        gl.uniform2fv(this.uniforms.u_centers, centers);
+        gl.uniform4fv(this.uniforms.u_blobShape, shapes);
+        gl.uniform4fv(this.uniforms.u_blobMotion, motions);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
     }
 
-    function exportJPG() {
-      downloadDataURL(renderStill(), `glass-plates-${state.canvasSize.split(' ')[0]}-${Date.now()}.jpg`);
+    const elements = {
+      previewCanvas: document.getElementById("previewCanvas"),
+      notice: document.getElementById("notice"),
+      swatches: document.getElementById("swatches"),
+      artboard: document.querySelector(".artboard"),
+      ratioList: document.getElementById("ratioList"),
+      canvasWidth: document.getElementById("canvasWidth"),
+      canvasHeight: document.getElementById("canvasHeight"),
+      colorA: document.getElementById("colorA"),
+      colorAHex: document.getElementById("colorAHex"),
+      colorB: document.getElementById("colorB"),
+      colorBHex: document.getElementById("colorBHex"),
+      boundaryColor: document.getElementById("boundaryColor"),
+      boundaryColorHex: document.getElementById("boundaryColorHex"),
+      basicForm: document.getElementById("basicForm"),
+      basicFormValue: document.getElementById("basicFormValue"),
+      basicMotion: document.getElementById("basicMotion"),
+      basicMotionValue: document.getElementById("basicMotionValue"),
+      animateToggle: document.getElementById("animateToggle"),
+      randomiseButton: document.getElementById("randomiseButton"),
+      downloadImage: document.getElementById("downloadImage"),
+      videoDuration: document.getElementById("videoDuration"),
+      downloadVideo: document.getElementById("downloadVideo"),
+      themeToggle: document.getElementById("themeToggle")
+    };
+
+    let renderer;
+    let lastNow = performance.now();
+    let accumulatedTime = 0;
+    let frozenTime = 0;
+
+    function setStatus(message) {
+      console.info(message);
     }
 
-    function exportPNGObject() {
-      downloadDataURL(renderStill({ transparent: true }), `glass-plates-object-${Date.now()}.png`);
+    function syncLabels() {
+      elements.basicFormValue.textContent = format(state.basicForm);
+      elements.basicMotionValue.textContent = format(state.basicMotion);
+      document.querySelectorAll("[data-param]").forEach((output) => {
+        output.textContent = format(state.params[output.dataset.param]);
+      });
+      document.querySelectorAll(".swatch").forEach((button) => {
+        const index = Number(button.dataset.palette);
+        button.classList.toggle("active", index === state.paletteIndex);
+        const strip = button.querySelector(".swatch-strip");
+        if (strip) strip.style.background = PALETTES[index].strip;
+      });
+      const colorAHex = rgbToHex(state.colors.colorA);
+      const colorBHex = rgbToHex(state.colors.colorB);
+      const boundaryHex = rgbToHex(state.colors.boundary);
+      elements.colorA.value = colorAHex;
+      elements.colorAHex.value = colorAHex;
+      elements.colorB.value = colorBHex;
+      elements.colorBHex.value = colorBHex;
+      elements.boundaryColor.value = boundaryHex;
+      elements.boundaryColorHex.value = boundaryHex;
+      const size = getCanvasSize();
+      elements.artboard.style.aspectRatio = `${size.width} / ${size.height}`;
+      elements.canvasWidth.value = String(size.width);
+      elements.canvasHeight.value = String(size.height);
+      document.querySelectorAll('input[name="canvasRatio"]').forEach((input) => {
+        input.checked = input.value === state.canvas.ratio;
+      });
+      document.querySelectorAll('input[name="grainMode"]').forEach((input) => {
+        input.checked = Number(input.value === "animated") === state.params.grainMode;
+      });
     }
 
-    function recordVideo() {
-      if (!canvas.captureStream || typeof MediaRecorder === 'undefined') return;
-      const mp4Type = 'video/mp4;codecs=h264';
-      const webmType = 'video/webm;codecs=vp9';
-      const mimeType = MediaRecorder.isTypeSupported(mp4Type)
-        ? mp4Type
-        : (MediaRecorder.isTypeSupported(webmType) ? webmType : 'video/webm');
-      const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
-      const stream = canvas.captureStream(30);
+    function fitArtboardToStage() {
+      const stage = document.querySelector(".stage");
+      const stageRect = stage.getBoundingClientRect();
+      const size = getCanvasSize();
+      const canvasRatio = size.width / size.height;
+      const stageRatio = stageRect.width / Math.max(1, stageRect.height);
+
+      let width;
+      let height;
+      if (stageRatio > canvasRatio) {
+        height = stageRect.height;
+        width = height * canvasRatio;
+      } else {
+        width = stageRect.width;
+        height = width / canvasRatio;
+      }
+
+      elements.artboard.style.width = `${Math.max(1, Math.floor(width))}px`;
+      elements.artboard.style.height = `${Math.max(1, Math.floor(height))}px`;
+    }
+
+    function buildRatioOptions() {
+      ASPECT_RATIOS.forEach((ratio) => {
+        const label = document.createElement("label");
+        label.className = "ratio-option";
+        label.innerHTML = `
+          <input type="radio" name="canvasRatio" value="${ratio.value}">
+          <span class="ratio-value">${ratio.value}</span>
+          <span class="ratio-name">${ratio.label}</span>
+        `;
+        label.querySelector("input").addEventListener("change", (event) => {
+          state.canvas.ratio = event.target.value;
+          setCanvasFromWidth(state.canvas.width);
+          syncLabels();
+          resizePreview();
+        });
+        elements.ratioList.appendChild(label);
+      });
+    }
+
+    function buildSwatches() {
+      PALETTES.forEach((palette, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "swatch";
+        button.dataset.palette = String(index);
+        button.innerHTML = `
+          <span class="swatch-strip"></span>
+          <span>${palette.name}</span>
+          <small>${palette.note}</small>
+        `;
+        button.addEventListener("click", () => {
+          state.paletteIndex = index;
+          state.colors.colorA = palette.colorA.slice();
+          state.colors.colorB = palette.colorB.slice();
+          state.colors.boundary = palette.boundary.slice();
+          syncLabels();
+        });
+        elements.swatches.appendChild(button);
+      });
+    }
+
+    function buildAdvancedControls() {
+      Object.entries(ADVANCED_CONTROLS).forEach(([key, config]) => {
+        const host = document.querySelector(`[data-control="${key}"]`);
+        host.innerHTML = `
+          <div class="label-row">
+            <label for="${key}">${config.label}</label>
+            <output data-param="${key}">${format(state.params[key])}</output>
+          </div>
+          <input id="${key}" type="range" min="${config.min}" max="${config.max}" step="${config.step}" value="${state.params[key]}">
+        `;
+        host.querySelector("input").addEventListener("input", (event) => {
+          state.params[key] = Number(event.target.value);
+          syncLabels();
+        });
+      });
+    }
+
+    function bindColorControl(colorInput, hexInput, slot) {
+      colorInput.addEventListener("input", (event) => {
+        if (updatePaletteColor(slot, event.target.value)) {
+          syncLabels();
+        }
+      });
+
+      hexInput.addEventListener("change", (event) => {
+        const normalized = normalizeHex(event.target.value);
+        if (normalized && updatePaletteColor(slot, normalized)) {
+          syncLabels();
+        } else {
+          syncLabels();
+        }
+      });
+
+      hexInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.currentTarget.blur();
+        }
+      });
+    }
+
+    function bindUI() {
+      elements.themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        elements.themeToggle.textContent = document.body.classList.contains("dark") ? "Dark UI" : "Light UI";
+      });
+
+      document.querySelectorAll(".tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = button.dataset.tab;
+          document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab === button));
+          document.querySelectorAll(".panel").forEach((panel) => panel.classList.toggle("active", panel.id === `${target}Panel`));
+        });
+      });
+
+      elements.basicForm.addEventListener("input", (event) => {
+        state.basicForm = Number(event.target.value);
+        mapBasicForm(state.basicForm);
+        syncAdvancedInputs();
+        syncLabels();
+      });
+
+      elements.basicMotion.addEventListener("input", (event) => {
+        state.basicMotion = Number(event.target.value);
+        mapBasicMotion(state.basicMotion);
+        syncAdvancedInputs();
+        syncLabels();
+      });
+
+      elements.canvasWidth.addEventListener("input", (event) => {
+        setCanvasFromWidth(Number(event.target.value));
+        syncLabels();
+        resizePreview();
+      });
+
+      elements.canvasHeight.addEventListener("input", (event) => {
+        setCanvasFromHeight(Number(event.target.value));
+        syncLabels();
+        resizePreview();
+      });
+
+      document.querySelectorAll('input[name="grainMode"]').forEach((input) => {
+        input.addEventListener("change", (event) => {
+          state.params.grainMode = event.target.value === "animated" ? 1 : 0;
+          syncLabels();
+        });
+      });
+
+      bindColorControl(elements.colorA, elements.colorAHex, "colorA");
+      bindColorControl(elements.colorB, elements.colorBHex, "colorB");
+      bindColorControl(elements.boundaryColor, elements.boundaryColorHex, "boundary");
+
+      elements.animateToggle.addEventListener("change", (event) => {
+        state.animate = event.target.checked;
+        if (!state.animate) frozenTime = accumulatedTime;
+      });
+
+      elements.randomiseButton.addEventListener("click", () => {
+        state.seed = Math.floor(1000 + Math.random() * 9000);
+        state.family = chooseFamily(state.seed + Math.floor(Math.random() * FAMILIES.length));
+        generateBlobs();
+        syncLabels();
+      });
+
+      elements.downloadImage.addEventListener("click", exportImage);
+      elements.downloadVideo.addEventListener("click", exportVideo);
+      window.addEventListener("resize", resizePreview);
+    }
+
+    function syncAdvancedInputs() {
+      Object.keys(ADVANCED_CONTROLS).forEach((key) => {
+        const input = document.getElementById(key);
+        if (input) input.value = state.params[key];
+      });
+    }
+
+    function resizePreview() {
+      if (!renderer || !renderer.supported) return;
+      fitArtboardToStage();
+      const rect = elements.previewCanvas.getBoundingClientRect();
+      renderer.resize(rect.width, rect.height);
+    }
+
+    function animationLoop(now) {
+      const delta = Math.min(0.05, (now - lastNow) / 1000);
+      lastNow = now;
+      if (state.animate) {
+        accumulatedTime += delta;
+      } else {
+        accumulatedTime = frozenTime;
+      }
+      resizePreview();
+      renderer.render(state, accumulatedTime);
+      requestAnimationFrame(animationLoop);
+    }
+
+    function makeFilename(prefix, extension) {
+      return `${prefix}-${state.family}-${state.seed}.${extension}`;
+    }
+
+    async function exportImage() {
+      try {
+        const size = getCanvasSize();
+        const exportCanvas = document.createElement("canvas");
+        const exportRenderer = new FlowRenderer(exportCanvas);
+        if (!exportRenderer.supported) throw new Error("WebGL2 is not available for export.");
+        exportCanvas.width = size.width;
+        exportCanvas.height = size.height;
+        exportRenderer.render(state, accumulatedTime);
+        setStatus("Preparing JPG...");
+        exportCanvas.toBlob((blob) => {
+          if (!blob) {
+            setStatus("JPG export failed.");
+            return;
+          }
+          downloadBlob(blob, makeFilename("flow-field", "jpg"));
+          setStatus("JPG downloaded.");
+        }, "image/jpeg", 0.92);
+      } catch (error) {
+        setStatus(error.message || "JPG export failed.");
+      }
+    }
+
+    async function exportVideo() {
+      if (!("MediaRecorder" in window)) {
+        setStatus("MediaRecorder is not supported in this browser.");
+        return;
+      }
+
+      const mp4Types = ["video/mp4;codecs=h264", "video/mp4;codecs=avc1.42E01E", "video/mp4"];
+      const mimeType = mp4Types.find((type) => MediaRecorder.isTypeSupported(type));
+      if (!mimeType) {
+        setStatus("MP4 recording is not supported in this browser.");
+        return;
+      }
+
+      const size = getCanvasSize();
+      const duration = Number(elements.videoDuration.value);
+      const exportCanvas = document.createElement("canvas");
+      const exportRenderer = new FlowRenderer(exportCanvas);
+      if (!exportRenderer.supported) {
+        setStatus("WebGL2 is not available for export.");
+        return;
+      }
+
+      exportCanvas.width = size.width;
+      exportCanvas.height = size.height;
+      const stream = exportCanvas.captureStream(EXPORT_FPS);
+      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 7000000 });
       const chunks = [];
-      const recorder = new MediaRecorder(stream, { mimeType });
+
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunks.push(event.data);
       };
       recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
         const blob = new Blob(chunks, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        downloadDataURL(url, `glass-plates-${Date.now()}.${extension}`);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        downloadBlob(blob, makeFilename("flow-field", "mp4"));
+        setStatus("MP4 downloaded.");
+        elements.downloadVideo.disabled = false;
       };
+
+      elements.downloadVideo.disabled = true;
+      setStatus(`Recording ${duration}s MP4...`);
       recorder.start();
-      setTimeout(() => recorder.stop(), 5000);
+
+      const totalFrames = Math.max(1, Math.round(duration * EXPORT_FPS));
+      const startTime = accumulatedTime;
+      let frame = 0;
+
+      function drawFrame() {
+        const t = startTime + frame / EXPORT_FPS;
+        exportRenderer.render(state, t);
+        frame += 1;
+        if (frame <= totalFrames) {
+          setTimeout(drawFrame, 1000 / EXPORT_FPS);
+        } else {
+          setTimeout(() => recorder.stop(), 180);
+        }
+      }
+
+      drawFrame();
     }
 
-    function animate() {
-      const dt = Math.min(clock.getDelta(), 0.05);
-      const elapsed = clock.elapsedTime;
-      if (state.motion && state.groupRotate) masterGroup.rotation.y += state.groupSpeed * dt;
-      items.forEach((item, i) => {
-        const phase = i * state.selfSpinOffset;
-        const baseX = THREE.MathUtils.degToRad(state.shapeRotX);
-        const baseY = THREE.MathUtils.degToRad(state.shapeRotY);
-        const baseZ = THREE.MathUtils.degToRad(state.shapeRotZ);
-        item.pivot.rotation.order = 'YXZ';
-        item.pivot.rotation.x = baseX + (state.motion && state.selfSpin ? Math.sin(elapsed * 0.35 + phase) * 0.08 : 0);
-        item.pivot.rotation.y = baseY + (state.motion && state.selfSpin ? elapsed * state.selfSpeed + phase : 0);
-        item.pivot.rotation.z = baseZ;
-      });
-      updateCameraTween(dt);
-      controls.update();
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
+    function initialise() {
+      mapBasicForm(state.basicForm);
+      mapBasicMotion(state.basicMotion);
+      state.family = chooseFamily(state.seed);
+      generateBlobs();
+      buildRatioOptions();
+      buildSwatches();
+      buildAdvancedControls();
+      bindUI();
+      syncAdvancedInputs();
+      syncLabels();
+
+      try {
+        renderer = new FlowRenderer(elements.previewCanvas);
+      } catch (error) {
+        elements.notice.classList.add("show");
+        setStatus(error.message || "WebGL2 setup failed.");
+        return;
+      }
+
+      if (!renderer.supported) {
+        elements.notice.classList.add("show");
+        setStatus("WebGL2 is not available.");
+        return;
+      }
+
+      resizePreview();
+      requestAnimationFrame(animationLoop);
     }
 
-    window.addEventListener('resize', resize);
-    buildUI();
-    themeToggle.addEventListener('click', () => {
-      state.lightUI = !state.lightUI;
-      applyTheme();
-    });
-    applyTheme();
-    refreshConditionalUI();
-    applyLook();
-    rebuildItems();
-    resize();
-    moveCamera(state.cameraPreset, false);
-    animate();
+    initialise();
   </script>
 </body>
 </html>
