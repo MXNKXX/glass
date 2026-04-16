@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glass Plate Array</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: #12151b;
+      --panel-soft: #1b2029;
+      --line: rgba(255, 255, 255, .12);
+      --text: #eef3f7;
+      --muted: #99a4af;
+      --accent: #82ddff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: #0e1116;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel {
+      overflow-y: auto;
+      padding: 18px 16px 24px;
+      background: linear-gradient(180deg, #101319, #151922);
+      border-right: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .section {
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .035);
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .control {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 7px 10px;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .control label {
+      font-size: 12px;
+      color: #dbe4ec;
+    }
+
+    .value {
+      min-width: 42px;
+      text-align: right;
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      grid-column: 1 / -1;
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    input[type="color"] {
+      width: 42px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: transparent;
+    }
+
+    select {
+      width: 100%;
+      min-height: 30px;
+      color: var(--text);
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .select-row,
+    .color-row,
+    .check-row {
+      display: grid;
+      grid-template-columns: 1fr 1.08fr;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .select-row label,
+    .color-row label,
+    .check-row label {
+      font-size: 12px;
+      color: #dbe4ec;
+    }
+
+    input[type="checkbox"] {
+      justify-self: start;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    button {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      background: linear-gradient(180deg, #29303b, #202630);
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    button:hover { border-color: rgba(130, 221, 255, .65); }
+
+    .view {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      height: 100vh;
+      overflow: hidden;
+      padding: 22px;
+      background: #0d1117;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+    }
+
+    @media (max-width: 760px) {
+      body { overflow: auto; }
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 48vh auto;
+        height: auto;
+        min-height: 100vh;
+      }
+      .view {
+        grid-row: 1;
+        height: 48vh;
+        min-height: 380px;
+        padding: 12px;
+      }
+      .panel {
+        grid-row: 2;
+        border-right: 0;
+        border-top: 1px solid var(--line);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="panel">
+      <h1>Glass Plate Array</h1>
+      <p class="intro">Thin solid discs and rounded plates arranged in 3D space.</p>
+      <div id="ui"></div>
+    </aside>
+
+    <section class="view" id="view">
+      <canvas id="canvas"></canvas>
+    </section>
+  </main>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const view = document.querySelector('#view');
+    const canvas = document.querySelector('#canvas');
+    const ui = document.querySelector('#ui');
+
+    const state = {
+      canvasSize: '16:9 Widescreen',
+      shape: 'roundedRect',
+      count: 14,
+      rotationPreset: 'front 0deg',
+      shapeRotX: 0,
+      shapeRotY: 0,
+      shapeRotZ: 0,
+      layout: 'ring',
+      spacing: 1,
+      lineWaveAmount: 0,
+      lineWaveFrequency: 1.5,
+      motion: true,
+      groupRotate: true,
+      groupSpeed: 0.18,
+      selfSpin: true,
+      selfSpeed: 0.55,
+      cameraPreset: 'perspective',
+      zoom: 1,
+      backgroundColor: '#eaf2f4',
+      objectColor: '#c9fbff',
+      opacity: 0.54,
+      gloss: 0.72,
+      thickness: 0.08
+    };
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true
+    });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(state.backgroundColor);
+
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 80);
+    const target = new THREE.Vector3(0, 0, 0);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.copy(target);
+
+    const masterGroup = new THREE.Group();
+    masterGroup.name = 'masterGroup';
+    scene.add(masterGroup);
+
+    const ambient = new THREE.HemisphereLight(0xffffff, 0x9db2c0, 1.45);
+    const key = new THREE.DirectionalLight(0xffffff, 2.4);
+    key.position.set(4, 6, 5);
+    const rimLight = new THREE.DirectionalLight(0x95eaff, 2.1);
+    rimLight.position.set(-4, 2.5, -4);
+    scene.add(ambient, key, rimLight);
+
+    const backdropMaterial = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      uniforms: {
+        base: { value: new THREE.Color(state.backgroundColor) },
+        top: { value: new THREE.Color(state.backgroundColor).lerp(new THREE.Color('#ffffff'), 0.28) }
+      },
+      vertexShader: `
+        varying vec3 vWorld;
+        void main() {
+          vec4 world = modelMatrix * vec4(position, 1.0);
+          vWorld = world.xyz;
+          gl_Position = projectionMatrix * viewMatrix * world;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vWorld;
+        uniform vec3 base;
+        uniform vec3 top;
+        void main() {
+          vec3 dir = normalize(vWorld);
+          float y = dir.y * 0.5 + 0.5;
+          vec3 color = mix(base, top, smoothstep(0.1, 1.0, y));
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `
+    });
+    const backdropMesh = new THREE.Mesh(new THREE.SphereGeometry(36, 48, 24), backdropMaterial);
+    scene.add(backdropMesh);
+
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+      color: state.objectColor,
+      transparent: true,
+      opacity: state.opacity,
+      transmission: 0.65,
+      roughness: 0.18,
+      metalness: 0,
+      thickness: 0.6,
+      ior: 1.46,
+      reflectivity: 0.65,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.08,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    const fillMaterial = new THREE.MeshBasicMaterial({
+      color: state.objectColor,
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+
+    let items = [];
+    let sharedGeometry = null;
+    let cameraTween = null;
+    const clock = new THREE.Clock();
+
+    const specs = [
+      { title: 'Canvas', controls: [
+        { key: 'canvasSize', label: 'Canvas size', type: 'select', options: ['1:1 Square', '16:9 Widescreen', '9:16 Social story', '4:3 Classic', '3:4 Traditional', '3:2 Standard', '2:3 Portrait', '1:2 Vertical', '2:1 Horizontal', '4:5 Social post'], canvas: true }
+      ]},
+      { title: 'Layout', controls: [
+        { key: 'layout', label: 'Layout', type: 'select', options: ['line', 'arc', 'ring'] },
+        { key: 'spacing', label: 'Spacing', type: 'range', min: 0.4, max: 1.8, step: 0.01 },
+        { key: 'lineWaveAmount', label: 'Line wave amount', type: 'range', min: 0, max: 2.5, step: 0.01 },
+        { key: 'lineWaveFrequency', label: 'Line wave frequency', type: 'range', min: 0.25, max: 4, step: 0.01 }
+      ]},
+      { title: 'Shape', controls: [
+        { key: 'shape', label: 'Shape type', type: 'select', options: ['disc', 'roundedRect'], rebuild: true },
+        { key: 'count', label: 'Count', type: 'range', min: 1, max: 24, step: 1, rebuild: true },
+        { key: 'thickness', label: 'Thickness', type: 'range', min: 0.02, max: 0.28, step: 0.005, rebuild: true },
+        { key: 'rotationPreset', label: 'Rotation preset', type: 'select', options: ['custom', 'front 0deg', 'side 90deg', 'back 180deg', 'flat top 90deg', 'roll 90deg'], rotationPreset: true },
+        { key: 'shapeRotX', label: 'Shape rotation X', type: 'range', min: -90, max: 90, step: 1 },
+        { key: 'shapeRotY', label: 'Shape rotation Y', type: 'range', min: -180, max: 180, step: 1 },
+        { key: 'shapeRotZ', label: 'Shape rotation Z', type: 'range', min: -180, max: 180, step: 1 }
+      ]},
+      { title: 'Motion', controls: [
+        { key: 'motion', label: 'Motion on/off', type: 'checkbox' },
+        { key: 'groupRotate', label: 'Group rotate on/off', type: 'checkbox' },
+        { key: 'groupSpeed', label: 'Group rotate speed', type: 'range', min: -1.2, max: 1.2, step: 0.01 },
+        { key: 'selfSpin', label: 'Self spin on/off', type: 'checkbox' },
+        { key: 'selfSpeed', label: 'Self spin speed', type: 'range', min: -2.5, max: 2.5, step: 0.01 }
+      ]},
+      { title: 'Camera', controls: [
+        { key: 'cameraPreset', label: 'Camera angle', type: 'select', options: ['front', 'top', 'side', 'isometric', 'perspective'], camera: true },
+        { key: 'zoom', label: 'Zoom', type: 'range', min: 0.45, max: 2.2, step: 0.01, camera: true }
+      ]},
+      { title: 'Look', controls: [
+        { key: 'backgroundColor', label: 'Background color', type: 'color' },
+        { key: 'objectColor', label: 'Object color', type: 'color' },
+        { key: 'opacity', label: 'Opacity', type: 'range', min: 0.08, max: 1, step: 0.01 },
+        { key: 'gloss', label: 'Gloss', type: 'range', min: 0, max: 1, step: 0.01 }
+      ]},
+      { title: 'Export', controls: [
+        { label: 'Export JPG', type: 'button', action: exportJPG },
+        { label: 'PNG object only', type: 'button', action: exportPNGObject },
+        { label: 'Record MP4 5s', type: 'button', action: recordVideo }
+      ]}
+    ];
+
+    const inputs = new Map();
+    const canvasPresets = {
+      '1:1 Square': [1, 1, 1080, 1080],
+      '16:9 Widescreen': [16, 9, 1280, 720],
+      '9:16 Social story': [9, 16, 1080, 1920],
+      '4:3 Classic': [4, 3, 1200, 900],
+      '3:4 Traditional': [3, 4, 900, 1200],
+      '3:2 Standard': [3, 2, 1200, 800],
+      '2:3 Portrait': [2, 3, 900, 1350],
+      '1:2 Vertical': [1, 2, 720, 1440],
+      '2:1 Horizontal': [2, 1, 1440, 720],
+      '4:5 Social post': [4, 5, 1080, 1350]
+    };
+    const rotationPresets = {
+      'front 0deg': [0, 0, 0],
+      'side 90deg': [0, 90, 0],
+      'back 180deg': [0, 180, 0],
+      'flat top 90deg': [90, 0, 0],
+      'roll 90deg': [0, 0, 90]
+    };
+
+    function buildUI() {
+      specs.forEach((section) => {
+        const box = document.createElement('section');
+        box.className = 'section';
+        const title = document.createElement('h2');
+        title.textContent = section.title;
+        box.append(title);
+
+        section.controls.forEach((control) => {
+          if (control.type === 'button') {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = control.label;
+            button.addEventListener('click', control.action);
+            box.append(button);
+            return;
+          }
+
+          if (control.type === 'select') {
+            const row = document.createElement('div');
+            row.className = 'select-row';
+            const label = document.createElement('label');
+            label.textContent = control.label;
+            const input = document.createElement('select');
+            control.options.forEach((option) => {
+              const item = document.createElement('option');
+              item.value = option;
+              item.textContent = option;
+              input.append(item);
+            });
+            input.value = state[control.key];
+            input.addEventListener('input', () => {
+              state[control.key] = input.value;
+              onChange(control);
+            });
+            row.append(label, input);
+            box.append(row);
+            inputs.set(control.key, { input });
+            return;
+          }
+
+          if (control.type === 'color') {
+            const row = document.createElement('div');
+            row.className = 'color-row';
+            const label = document.createElement('label');
+            label.textContent = control.label;
+            const input = document.createElement('input');
+            input.type = 'color';
+            input.value = state[control.key];
+            input.addEventListener('input', () => {
+              state[control.key] = input.value;
+              onChange(control);
+            });
+            row.append(label, input);
+            box.append(row);
+            inputs.set(control.key, { input });
+            return;
+          }
+
+          if (control.type === 'checkbox') {
+            const row = document.createElement('div');
+            row.className = 'check-row';
+            const label = document.createElement('label');
+            label.textContent = control.label;
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = state[control.key];
+            input.addEventListener('input', () => {
+              state[control.key] = input.checked;
+              onChange(control);
+            });
+            row.append(label, input);
+            box.append(row);
+            inputs.set(control.key, { input });
+            return;
+          }
+
+          const row = document.createElement('div');
+          row.className = 'control';
+          const label = document.createElement('label');
+          label.textContent = control.label;
+          const value = document.createElement('span');
+          value.className = 'value';
+          value.textContent = formatValue(state[control.key]);
+          const input = document.createElement('input');
+          input.type = 'range';
+          input.min = control.min;
+          input.max = control.max;
+          input.step = control.step;
+          input.value = state[control.key];
+          input.addEventListener('input', () => {
+            state[control.key] = Number(input.value);
+            value.textContent = formatValue(state[control.key]);
+            onChange(control);
+          });
+          row.append(label, value, input);
+          box.append(row);
+          inputs.set(control.key, { input, value });
+        });
+
+        ui.append(box);
+      });
+    }
+
+    function formatValue(value) {
+      return Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
+    }
+
+    function syncUI() {
+      inputs.forEach((entry, key) => {
+        const value = state[key];
+        if (entry.input.type === 'checkbox') {
+          entry.input.checked = Boolean(value);
+        } else {
+          entry.input.value = value;
+        }
+        if (entry.value) entry.value.textContent = formatValue(value);
+      });
+    }
+
+    function onChange(control) {
+      if (control.rotationPreset && state.rotationPreset !== 'custom') {
+        const values = rotationPresets[state.rotationPreset];
+        if (values) {
+          [state.shapeRotX, state.shapeRotY, state.shapeRotZ] = values;
+          syncUI();
+        }
+      }
+      if (['shapeRotX', 'shapeRotY', 'shapeRotZ'].includes(control.key)) {
+        state.rotationPreset = 'custom';
+        syncUI();
+      }
+      if (control.rebuild) rebuildItems();
+      if (control.camera) moveCamera(state.cameraPreset, true);
+      if (control.canvas) resize();
+      applyLook();
+      updateLayout();
+    }
+
+    function roundedRectShape(width, height, radius) {
+      const x = -width / 2;
+      const y = -height / 2;
+      const r = Math.min(radius, width * .45, height * .45);
+      const shape = new THREE.Shape();
+      shape.moveTo(x + r, y);
+      shape.lineTo(x + width - r, y);
+      shape.quadraticCurveTo(x + width, y, x + width, y + r);
+      shape.lineTo(x + width, y + height - r);
+      shape.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      shape.lineTo(x + r, y + height);
+      shape.quadraticCurveTo(x, y + height, x, y + height - r);
+      shape.lineTo(x, y + r);
+      shape.quadraticCurveTo(x, y, x + r, y);
+      return shape;
+    }
+
+    function createMainGeometry() {
+      if (state.shape === 'disc') {
+        const geometry = new THREE.CylinderGeometry(0.46, 0.46, state.thickness, 96, 1, false);
+        geometry.rotateX(Math.PI / 2);
+        geometry.computeVertexNormals();
+        return geometry;
+      }
+
+      const geometry = new THREE.ExtrudeGeometry(roundedRectShape(0.9, 1.38, 0.17), {
+        depth: state.thickness,
+        bevelEnabled: true,
+        bevelSize: Math.min(0.035, state.thickness * 0.42),
+        bevelThickness: Math.min(0.035, state.thickness * 0.42),
+        bevelSegments: 5,
+        curveSegments: 16,
+        steps: 1
+      });
+      geometry.center();
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    function rebuildItems() {
+      items.forEach((item) => masterGroup.remove(item.group));
+      items = [];
+      if (sharedGeometry) sharedGeometry.dispose();
+      sharedGeometry = createMainGeometry();
+
+      for (let i = 0; i < state.count; i++) {
+        const group = new THREE.Group();
+        group.name = `itemGroup_${i}`;
+        const pivot = new THREE.Group();
+        pivot.name = `shapePivot_${i}`;
+
+        const fill = new THREE.Mesh(sharedGeometry, fillMaterial);
+        fill.name = `fill_${i}`;
+        fill.scale.setScalar(0.985);
+        fill.renderOrder = i * 3;
+
+        const glass = new THREE.Mesh(sharedGeometry, glassMaterial);
+        glass.name = `mesh_${i}`;
+        glass.renderOrder = i * 3 + 1;
+
+        pivot.add(fill, glass);
+        group.add(pivot);
+        masterGroup.add(group);
+        items.push({ group, pivot, fill, glass, basePosition: new THREE.Vector3(), baseRotation: new THREE.Euler() });
+      }
+
+      updateLayout();
+    }
+
+    function updateLayout() {
+      const count = Math.max(1, state.count);
+      const half = (count - 1) / 2;
+      const arcSpan = Math.PI * 1.18;
+      const radius = 3.0 * state.spacing;
+
+      items.forEach((item, i) => {
+        const t = count === 1 ? 0.5 : i / (count - 1);
+        const closedT = i / count;
+        const centered = i - half;
+        const position = item.basePosition;
+        const rotation = item.baseRotation;
+        position.set(0, 0, 0);
+        rotation.set(0, 0, 0);
+
+        if (state.layout === 'line') {
+          const wave = Math.sin((t - 0.5) * Math.PI * 2 * state.lineWaveFrequency) * state.lineWaveAmount;
+          position.set(centered * 0.62 * state.spacing, 0, centered * 0.08 * state.spacing + wave);
+          rotation.y = -0.18 - wave * 0.08;
+        }
+
+        if (state.layout === 'arc') {
+          const a = (t - 0.5) * arcSpan;
+          position.set(Math.sin(a) * radius, 0, Math.cos(a) * radius * 0.48);
+          rotation.y = -a * 0.72;
+        }
+
+        if (state.layout === 'ring') {
+          const a = closedT * Math.PI * 2;
+          const ringRadius = 2.75 * state.spacing;
+          position.set(Math.cos(a) * ringRadius, 0, Math.sin(a) * ringRadius);
+          rotation.y = -a + Math.PI / 2;
+        }
+
+        item.group.position.copy(position);
+        item.group.rotation.copy(rotation);
+      });
+    }
+
+    function applyLook() {
+      const gloss = state.gloss;
+      scene.background.set(state.backgroundColor);
+      backdropMaterial.uniforms.base.value.set(state.backgroundColor);
+      backdropMaterial.uniforms.top.value.set(state.backgroundColor).lerp(new THREE.Color('#ffffff'), 0.28);
+      const autoEdge = new THREE.Color(state.objectColor).lerp(new THREE.Color('#ffffff'), 0.35);
+      rimLight.color.copy(autoEdge);
+
+      glassMaterial.color.set(state.objectColor);
+      glassMaterial.opacity = state.opacity;
+      glassMaterial.transmission = 0.25 + gloss * 0.7;
+      glassMaterial.roughness = 0.55 - gloss * 0.5;
+      glassMaterial.reflectivity = 0.2 + gloss * 0.8;
+      glassMaterial.clearcoat = 0.35 + gloss * 0.65;
+      glassMaterial.clearcoatRoughness = 0.28 - gloss * 0.24;
+      glassMaterial.thickness = 0.25 + gloss * 0.8;
+
+      fillMaterial.color.set(state.objectColor);
+      fillMaterial.opacity = Math.min(0.28, 0.06 + state.opacity * 0.16);
+    }
+
+    function cameraViewFor(preset) {
+      const distance = 8.5 / state.zoom;
+      const upY = new THREE.Vector3(0, 1, 0);
+      if (preset === 'front') {
+        return { position: new THREE.Vector3(0, 0, distance), up: upY };
+      }
+      if (preset === 'top') {
+        return { position: new THREE.Vector3(0, distance, 0), up: new THREE.Vector3(0, 0, -1) };
+      }
+      if (preset === 'side') {
+        return { position: new THREE.Vector3(distance, 0, 0), up: upY };
+      }
+      if (preset === 'isometric') {
+        return { position: new THREE.Vector3(distance * 0.72, distance * 0.72, distance * 0.72), up: upY };
+      }
+      return { position: new THREE.Vector3(distance * 0.62, distance * 0.36, distance * 0.82), up: upY };
+    }
+
+    function moveCamera(preset, smooth) {
+      const view = cameraViewFor(preset);
+      const helper = camera.clone();
+      helper.position.copy(view.position);
+      helper.up.copy(view.up);
+      helper.lookAt(target);
+      if (!smooth) {
+        camera.position.copy(view.position);
+        camera.up.copy(view.up);
+        camera.quaternion.copy(helper.quaternion);
+        controls.target.copy(target);
+        controls.update();
+        return;
+      }
+      cameraTween = {
+        from: camera.position.clone(),
+        to: view.position,
+        fromQuaternion: camera.quaternion.clone(),
+        toQuaternion: helper.quaternion.clone(),
+        fromUp: camera.up.clone(),
+        toUp: view.up,
+        time: 0,
+        duration: 0.7
+      };
+    }
+
+    function updateCameraTween(dt) {
+      if (!cameraTween) return;
+      cameraTween.time += dt;
+      const raw = Math.min(1, cameraTween.time / cameraTween.duration);
+      const t = raw * raw * (3 - 2 * raw);
+      camera.position.lerpVectors(cameraTween.from, cameraTween.to, t);
+      camera.quaternion.slerpQuaternions(cameraTween.fromQuaternion, cameraTween.toQuaternion, t);
+      camera.up.lerpVectors(cameraTween.fromUp, cameraTween.toUp, t).normalize();
+      controls.target.copy(target);
+      controls.update();
+      if (raw >= 1) {
+        camera.position.copy(cameraTween.to);
+        camera.quaternion.copy(cameraTween.toQuaternion);
+        camera.up.copy(cameraTween.toUp);
+        cameraTween = null;
+      }
+    }
+
+    function selectedCanvasPreset() {
+      return canvasPresets[state.canvasSize] || canvasPresets['16:9 Widescreen'];
+    }
+
+    function resize() {
+      const [ratioW, ratioH] = selectedCanvasPreset();
+      const availableW = Math.max(1, view.clientWidth - 44);
+      const availableH = Math.max(1, view.clientHeight - 44);
+      const ratio = ratioW / ratioH;
+      let w = availableW;
+      let h = w / ratio;
+      if (h > availableH) {
+        h = availableH;
+        w = h * ratio;
+      }
+      renderer.setSize(Math.round(w), Math.round(h), false);
+      canvas.style.width = `${Math.round(w)}px`;
+      canvas.style.height = `${Math.round(h)}px`;
+      camera.aspect = w / Math.max(1, h);
+      camera.updateProjectionMatrix();
+    }
+
+    function downloadDataURL(dataURL, filename) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataURL;
+      link.click();
+    }
+
+    function renderStill({ transparent = false } = {}) {
+      const wasVisible = backdropMesh.visible;
+      const oldBackground = scene.background;
+      if (transparent) {
+        backdropMesh.visible = false;
+        scene.background = null;
+        renderer.setClearColor(0x000000, 0);
+      }
+      renderer.render(scene, camera);
+      const dataURL = renderer.domElement.toDataURL(transparent ? 'image/png' : 'image/jpeg', transparent ? 1 : 0.94);
+      if (transparent) {
+        backdropMesh.visible = wasVisible;
+        scene.background = oldBackground;
+        renderer.setClearColor(0x000000, 1);
+        renderer.render(scene, camera);
+      }
+      return dataURL;
+    }
+
+    function exportJPG() {
+      downloadDataURL(renderStill(), `glass-plates-${state.canvasSize.split(' ')[0]}-${Date.now()}.jpg`);
+    }
+
+    function exportPNGObject() {
+      downloadDataURL(renderStill({ transparent: true }), `glass-plates-object-${Date.now()}.png`);
+    }
+
+    function recordVideo() {
+      if (!canvas.captureStream || typeof MediaRecorder === 'undefined') return;
+      const mp4Type = 'video/mp4;codecs=h264';
+      const webmType = 'video/webm;codecs=vp9';
+      const mimeType = MediaRecorder.isTypeSupported(mp4Type)
+        ? mp4Type
+        : (MediaRecorder.isTypeSupported(webmType) ? webmType : 'video/webm');
+      const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+      const stream = canvas.captureStream(30);
+      const chunks = [];
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) chunks.push(event.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        downloadDataURL(url, `glass-plates-${Date.now()}.${extension}`);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      };
+      recorder.start();
+      setTimeout(() => recorder.stop(), 5000);
+    }
+
+    function animate() {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.elapsedTime;
+      if (state.motion && state.groupRotate) masterGroup.rotation.y += state.groupSpeed * dt;
+      items.forEach((item, i) => {
+        const phase = i * 0.18;
+        const baseX = THREE.MathUtils.degToRad(state.shapeRotX);
+        const baseY = THREE.MathUtils.degToRad(state.shapeRotY);
+        const baseZ = THREE.MathUtils.degToRad(state.shapeRotZ);
+        item.pivot.rotation.order = 'YXZ';
+        item.pivot.rotation.x = baseX + (state.motion && state.selfSpin ? Math.sin(elapsed * 0.35 + phase) * 0.08 : 0);
+        item.pivot.rotation.y = baseY + (state.motion && state.selfSpin ? elapsed * state.selfSpeed + phase : 0);
+        item.pivot.rotation.z = baseZ;
+      });
+      updateCameraTween(dt);
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+    buildUI();
+    applyLook();
+    rebuildItems();
+    resize();
+    moveCamera(state.cameraPreset, false);
+    animate();
+  </script>
+</body>
+</html>
