@@ -6,6 +6,23 @@
   <title>Glass Plate Array</title>
   <style>
     :root {
+      color-scheme: light;
+      --panel: #ffffff;
+      --panel-soft: #f5f5f7;
+      --body-bg: #ffffff;
+      --view-bg: #ffffff;
+      --panel-bg: linear-gradient(180deg, #fbfbfd, #f5f5f7);
+      --section-bg: rgba(255, 255, 255, .82);
+      --button-bg: linear-gradient(180deg, #ffffff, #f2f2f5);
+      --canvas-shadow: 0 18px 50px rgba(20, 33, 45, .12);
+      --line: rgba(0, 0, 0, .1);
+      --text: #1d1d1f;
+      --label: #2b2b2f;
+      --muted: #6e6e73;
+      --accent: #007aff;
+    }
+
+    body.dark {
       color-scheme: dark;
       --panel: #12151b;
       --panel-soft: #1b2029;
@@ -20,23 +37,6 @@
       --label: #dbe4ec;
       --muted: #99a4af;
       --accent: #82ddff;
-    }
-
-    body.light {
-      color-scheme: light;
-      --panel: #ffffff;
-      --panel-soft: #f3f5f7;
-      --body-bg: #ffffff;
-      --view-bg: #ffffff;
-      --panel-bg: linear-gradient(180deg, #ffffff, #f7f9fb);
-      --section-bg: rgba(18, 24, 31, .035);
-      --button-bg: linear-gradient(180deg, #ffffff, #edf2f6);
-      --canvas-shadow: 0 16px 42px rgba(20, 33, 45, .13);
-      --line: rgba(15, 27, 38, .13);
-      --text: #17202a;
-      --label: #2d3a45;
-      --muted: #6f7d88;
-      --accent: #157ea7;
     }
 
     * { box-sizing: border-box; }
@@ -60,9 +60,10 @@
 
     .panel {
       overflow-y: auto;
-      padding: 18px 16px 24px;
+      padding: 20px 16px 24px;
       background: var(--panel-bg);
       border-right: 1px solid var(--line);
+      backdrop-filter: blur(24px);
     }
 
     .panel-head {
@@ -79,9 +80,10 @@
 
     h1 {
       margin: 0 0 4px;
-      font-size: 18px;
+      font-size: 17px;
       line-height: 1.2;
       letter-spacing: 0;
+      font-weight: 650;
     }
 
     .intro {
@@ -105,12 +107,14 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--section-bg);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
     }
 
     .section h2 {
       margin: 0 0 10px;
       font-size: 13px;
       letter-spacing: 0;
+      font-weight: 650;
     }
 
     .control {
@@ -228,6 +232,8 @@
 
     button:hover { border-color: rgba(130, 221, 255, .65); }
 
+    .is-hidden { display: none !important; }
+
     .view {
       position: relative;
       display: flex;
@@ -306,30 +312,43 @@
     const themeToggle = document.querySelector('#themeToggle');
 
     const state = {
-      lightUI: false,
+      lightUI: true,
       canvasSize: '16:9 Widescreen',
       shape: 'roundedRect',
       count: 14,
       panelSize: 1.12,
       panelAspect: 0.65,
       cornerRadius: 0.18,
-      discInflate: 0.18,
+      discInflate: 0.55,
       rotationPreset: 'front 0deg',
       shapeRotX: 0,
       shapeRotY: 0,
       shapeRotZ: 0,
       layout: 'ring',
       spacing: 1,
+      lineSpacingX: 0.62,
+      lineSpacingZ: 0.08,
       lineWaveAmount: 0,
       lineWaveFrequency: 1.5,
+      layoutFacing: 'tangent',
+      layoutStartAngle: -90,
       axisRotX: 0,
       axisRotY: 0,
       axisRotZ: 0,
+      selectedItem: 0,
+      customX: 0,
+      customY: 0,
+      customZ: 0,
+      customRotX: 0,
+      customRotY: 0,
+      customRotZ: 0,
+      customScale: 1,
       motion: true,
       groupRotate: true,
       groupSpeed: 0.18,
       selfSpin: true,
       selfSpeed: 0.55,
+      selfSpinOffset: 0,
       cameraPreset: 'perspective',
       cameraYaw: 37,
       cameraPitch: 22,
@@ -495,21 +514,37 @@
         { key: 'canvasSize', label: 'Canvas size', type: 'select', options: ['1:1 Square', '16:9 Widescreen', '9:16 Social story', '4:3 Classic', '3:4 Traditional', '3:2 Standard', '2:3 Portrait', '1:2 Vertical', '2:1 Horizontal', '4:5 Social post'], canvas: true }
       ]},
       { title: 'Layout', controls: [
-        { key: 'layout', label: 'Layout', type: 'select', options: ['line', 'arc', 'ring'] },
-        { key: 'spacing', label: 'Spacing', type: 'range', min: 0.4, max: 1.8, step: 0.01 },
-        { key: 'lineWaveAmount', label: 'Line wave amount', type: 'range', min: 0, max: 2.5, step: 0.01 },
-        { key: 'lineWaveFrequency', label: 'Line wave frequency', type: 'range', min: 0.25, max: 4, step: 0.01 },
-        { key: 'axisRotX', label: 'Layout axis tilt X', type: 'range', min: -90, max: 90, step: 1 },
-        { key: 'axisRotY', label: 'Layout axis turn Y', type: 'range', min: -180, max: 180, step: 1 },
-        { key: 'axisRotZ', label: 'Layout axis roll Z', type: 'range', min: -180, max: 180, step: 1 }
+        { key: 'layout', label: 'Layout', type: 'select', options: ['line', 'arc', 'ring', 'custom'] },
+        { key: 'spacing', label: 'Spacing', type: 'range', min: 0.12, max: 1.8, step: 0.005, showWhen: () => state.layout !== 'custom' },
+        { key: 'layoutFacing', label: 'Panel direction', type: 'select', options: ['tangent', 'same direction', 'inward', 'outward'], showWhen: () => state.layout !== 'custom' },
+        { key: 'layoutStartAngle', label: 'Start angle', type: 'range', min: -180, max: 180, step: 1, showWhen: () => state.layout === 'arc' || state.layout === 'ring' },
+        { key: 'lineSpacingX', label: 'Line spacing X', type: 'range', min: 0, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
+        { key: 'lineSpacingZ', label: 'Line spacing Z', type: 'range', min: -2.5, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
+        { key: 'lineWaveAmount', label: 'Line wave amount', type: 'range', min: 0, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
+        { key: 'lineWaveFrequency', label: 'Line wave frequency', type: 'range', min: 0.25, max: 4, step: 0.01, showWhen: () => state.layout === 'line' },
+        { key: 'axisRotX', label: 'Layout axis tilt X', type: 'range', min: -90, max: 90, step: 1, showWhen: () => state.layout !== 'custom' },
+        { key: 'axisRotY', label: 'Layout axis turn Y', type: 'range', min: -180, max: 180, step: 1, showWhen: () => state.layout !== 'custom' },
+        { key: 'axisRotZ', label: 'Layout axis roll Z', type: 'range', min: -180, max: 180, step: 1, showWhen: () => state.layout !== 'custom' }
+      ]},
+      { title: 'Custom Edit', showWhen: () => state.layout === 'custom', controls: [
+        { key: 'selectedItem', label: 'Selected item', type: 'range', min: 0, max: 23, step: 1, customSelect: true },
+        { key: 'customX', label: 'Position X', type: 'range', min: -6, max: 6, step: 0.01, customTransform: true },
+        { key: 'customY', label: 'Position Y', type: 'range', min: -4, max: 4, step: 0.01, customTransform: true },
+        { key: 'customZ', label: 'Position Z', type: 'range', min: -6, max: 6, step: 0.01, customTransform: true },
+        { key: 'customRotX', label: 'Rotation X', type: 'range', min: -180, max: 180, step: 1, customTransform: true },
+        { key: 'customRotY', label: 'Rotation Y', type: 'range', min: -180, max: 180, step: 1, customTransform: true },
+        { key: 'customRotZ', label: 'Rotation Z', type: 'range', min: -180, max: 180, step: 1, customTransform: true },
+        { key: 'customScale', label: 'Scale', type: 'range', min: 0.2, max: 2.2, step: 0.01, customTransform: true },
+        { label: 'Reset Selected', type: 'button', action: resetSelectedCustom },
+        { label: 'Reset All Custom', type: 'button', action: resetAllCustom }
       ]},
       { title: 'Shape', controls: [
         { key: 'shape', label: 'Shape type', type: 'select', options: ['disc', 'roundedRect'], rebuild: true },
         { key: 'count', label: 'Count', type: 'range', min: 1, max: 24, step: 1, rebuild: true },
         { key: 'panelSize', label: 'Panel size', type: 'range', min: 0.45, max: 2.1, step: 0.01, rebuild: true },
         { key: 'panelAspect', label: 'Aspect W/H', type: 'range', min: 0.35, max: 2.4, step: 0.01, rebuild: true },
-        { key: 'cornerRadius', label: 'Corner radius', type: 'range', min: 0.02, max: 0.5, step: 0.01, rebuild: true },
-        { key: 'discInflate', label: 'Disc inflate', type: 'range', min: 0, max: 1, step: 0.01, rebuild: true },
+        { key: 'cornerRadius', label: 'Corner radius', type: 'range', min: 0.02, max: 0.5, step: 0.01, rebuild: true, showWhen: () => state.shape === 'roundedRect' },
+        { key: 'discInflate', label: 'Disc inflate', type: 'range', min: 0, max: 1.2, step: 0.01, rebuild: true, showWhen: () => state.shape === 'disc' },
         { key: 'thickness', label: 'Thickness', type: 'range', min: 0.02, max: 0.28, step: 0.005, rebuild: true },
         { key: 'rotationPreset', label: 'Rotation preset', type: 'select', options: ['custom', 'front 0deg', 'side 90deg', 'back 180deg', 'flat top 90deg', 'roll 90deg'], rotationPreset: true },
         { key: 'shapeRotX', label: 'Shape rotation X', type: 'range', min: -90, max: 90, step: 1 },
@@ -521,7 +556,8 @@
         { key: 'groupRotate', label: 'Group rotate on/off', type: 'checkbox' },
         { key: 'groupSpeed', label: 'Group rotate speed', type: 'range', min: -1.2, max: 1.2, step: 0.01 },
         { key: 'selfSpin', label: 'Self spin on/off', type: 'checkbox' },
-        { key: 'selfSpeed', label: 'Self spin speed', type: 'range', min: -2.5, max: 2.5, step: 0.01 }
+        { key: 'selfSpeed', label: 'Self spin speed', type: 'range', min: -2.5, max: 2.5, step: 0.01 },
+        { key: 'selfSpinOffset', label: 'Self spin offset', type: 'range', min: 0, max: 0.6, step: 0.01, showWhen: () => state.selfSpin }
       ]},
       { title: 'Camera', controls: [
         { key: 'cameraPreset', label: 'Camera angle', type: 'select', options: ['front', 'top', 'side', 'isometric', 'perspective', 'custom'], camera: true },
@@ -539,9 +575,9 @@
         { key: 'panelGradientDirection', label: 'Panel gradient direction', type: 'select', options: ['horizontal', 'vertical', 'diagonal'] },
         { key: 'opacity', label: 'Opacity', type: 'range', min: 0.08, max: 1, step: 0.01 },
         { key: 'gloss', label: 'Gloss', type: 'range', min: 0, max: 1, step: 0.01 },
-        { key: 'backLayer', label: 'Back layer on/off', type: 'checkbox' },
-        { key: 'backLayerOpacity', label: 'Back layer opacity', type: 'range', min: 0, max: 0.6, step: 0.01 },
-        { key: 'backLayerBlur', label: 'Back layer blur', type: 'range', min: 0, max: 1, step: 0.01 }
+        { key: 'backLayer', label: 'Background blur on/off', type: 'checkbox' },
+        { key: 'backLayerOpacity', label: 'Blur layer opacity', type: 'range', min: 0, max: 0.6, step: 0.01, showWhen: () => state.backLayer },
+        { key: 'backLayerBlur', label: 'Blur layer amount', type: 'range', min: 0, max: 1, step: 0.01, showWhen: () => state.backLayer }
       ]},
       { title: 'Export', controls: [
         { label: 'Export JPG', type: 'button', action: exportJPG },
@@ -551,6 +587,8 @@
     ];
 
     const inputs = new Map();
+    const controlEntries = [];
+    let customTransforms = [];
     const canvasPresets = {
       '1:1 Square': [1, 1, 1080, 1080],
       '16:9 Widescreen': [16, 9, 1280, 720],
@@ -582,17 +620,25 @@
       specs.forEach((section) => {
         const box = document.createElement('section');
         box.className = 'section';
+        const sectionEntry = { section, box, controls: [] };
         const title = document.createElement('h2');
         title.textContent = section.title;
         box.append(title);
 
         section.controls.forEach((control) => {
+          const registerControl = (element) => {
+            const entry = { control, element, sectionEntry };
+            sectionEntry.controls.push(entry);
+            controlEntries.push(entry);
+          };
+
           if (control.type === 'button') {
             const button = document.createElement('button');
             button.type = 'button';
             button.textContent = control.label;
             button.addEventListener('click', control.action);
             box.append(button);
+            registerControl(button);
             return;
           }
 
@@ -615,7 +661,8 @@
             });
             row.append(label, input);
             box.append(row);
-            inputs.set(control.key, { input });
+            inputs.set(control.key, { input, control });
+            registerControl(row);
             return;
           }
 
@@ -651,7 +698,8 @@
             inputsWrap.append(hexInput, picker);
             row.append(label, inputsWrap);
             box.append(row);
-            inputs.set(control.key, { input: hexInput, picker });
+            inputs.set(control.key, { input: hexInput, picker, control });
+            registerControl(row);
             return;
           }
 
@@ -669,7 +717,8 @@
             });
             row.append(label, input);
             box.append(row);
-            inputs.set(control.key, { input });
+            inputs.set(control.key, { input, control });
+            registerControl(row);
             return;
           }
 
@@ -693,17 +742,32 @@
           });
           row.append(label, value, input);
           box.append(row);
-          inputs.set(control.key, { input, value });
+          inputs.set(control.key, { input, value, control });
+          registerControl(row);
         });
 
         ui.append(box);
+        controlEntries.push(sectionEntry);
       });
     }
 
     function applyTheme() {
-      document.body.classList.toggle('light', state.lightUI);
+      document.body.classList.toggle('dark', !state.lightUI);
       themeToggle.textContent = state.lightUI ? 'Dark UI' : 'Light UI';
       themeToggle.setAttribute('aria-pressed', String(state.lightUI));
+    }
+
+    function refreshConditionalUI() {
+      controlEntries.forEach((entry) => {
+        if (entry.section && entry.box) {
+          const sectionVisible = entry.section.showWhen ? entry.section.showWhen() : true;
+          const hasVisibleControl = entry.controls.some((controlEntry) => !controlEntry.element.classList.contains('is-hidden'));
+          entry.box.classList.toggle('is-hidden', !sectionVisible || !hasVisibleControl);
+          return;
+        }
+        const visible = entry.control.showWhen ? entry.control.showWhen() : true;
+        entry.element.classList.toggle('is-hidden', !visible);
+      });
     }
 
     function formatValue(value) {
@@ -721,6 +785,8 @@
     }
 
     function syncUI() {
+      const selectedEntry = inputs.get('selectedItem');
+      if (selectedEntry) selectedEntry.input.max = Math.max(0, state.count - 1);
       inputs.forEach((entry, key) => {
         const value = state[key];
         if (entry.input.type === 'checkbox') {
@@ -735,7 +801,82 @@
       });
     }
 
+    function defaultCustomTransform(index) {
+      const half = (Math.max(1, state.count) - 1) / 2;
+      return {
+        x: (index - half) * 0.72,
+        y: 0,
+        z: 0,
+        rx: 0,
+        ry: 0,
+        rz: 0,
+        scale: 1
+      };
+    }
+
+    function ensureCustomTransforms() {
+      for (let i = customTransforms.length; i < state.count; i++) {
+        customTransforms[i] = defaultCustomTransform(i);
+      }
+      customTransforms.length = state.count;
+      state.selectedItem = Math.min(Math.max(0, Math.round(state.selectedItem)), Math.max(0, state.count - 1));
+    }
+
+    function loadSelectedCustomTransform() {
+      ensureCustomTransforms();
+      const data = customTransforms[state.selectedItem] || defaultCustomTransform(state.selectedItem);
+      state.customX = data.x;
+      state.customY = data.y;
+      state.customZ = data.z;
+      state.customRotX = data.rx;
+      state.customRotY = data.ry;
+      state.customRotZ = data.rz;
+      state.customScale = data.scale;
+    }
+
+    function saveSelectedCustomTransform() {
+      ensureCustomTransforms();
+      customTransforms[state.selectedItem] = {
+        x: state.customX,
+        y: state.customY,
+        z: state.customZ,
+        rx: state.customRotX,
+        ry: state.customRotY,
+        rz: state.customRotZ,
+        scale: state.customScale
+      };
+    }
+
+    function resetSelectedCustom() {
+      ensureCustomTransforms();
+      customTransforms[state.selectedItem] = defaultCustomTransform(state.selectedItem);
+      loadSelectedCustomTransform();
+      syncUI();
+      updateLayout();
+    }
+
+    function resetAllCustom() {
+      customTransforms = [];
+      ensureCustomTransforms();
+      loadSelectedCustomTransform();
+      syncUI();
+      updateLayout();
+    }
+
     function onChange(control) {
+      if (control.customSelect) {
+        state.selectedItem = Math.round(state.selectedItem);
+        loadSelectedCustomTransform();
+        syncUI();
+      }
+      if (control.customTransform) {
+        saveSelectedCustomTransform();
+      }
+      if (control.key === 'layout' && state.layout === 'custom') {
+        ensureCustomTransforms();
+        loadSelectedCustomTransform();
+        syncUI();
+      }
       if (control.rotationPreset && state.rotationPreset !== 'custom') {
         const values = rotationPresets[state.rotationPreset];
         if (values) {
@@ -764,10 +905,15 @@
       applyLook();
       applyLayoutAxis();
       updateLayout();
+      refreshConditionalUI();
     }
 
     function applyLayoutAxis() {
       layoutGroup.rotation.order = 'YXZ';
+      if (state.layout === 'custom') {
+        layoutGroup.rotation.set(0, 0, 0);
+        return;
+      }
       layoutGroup.rotation.set(
         THREE.MathUtils.degToRad(state.axisRotX),
         THREE.MathUtils.degToRad(state.axisRotY),
@@ -799,34 +945,37 @@
       return { width, height };
     }
 
-    function inflateDiscGeometry(geometry, width, height) {
-      const position = geometry.attributes.position;
-      const rx = Math.max(0.0001, width * 0.5);
-      const ry = Math.max(0.0001, height * 0.5);
-      const amount = state.thickness * 0.85 * state.discInflate;
-      for (let i = 0; i < position.count; i++) {
-        const x = position.getX(i);
-        const y = position.getY(i);
-        const z = position.getZ(i);
-        const nx = x / rx;
-        const ny = y / ry;
-        const radial = Math.min(1, Math.sqrt(nx * nx + ny * ny));
-        const dome = Math.pow(Math.max(0, 1 - radial * radial), 1.35);
-        position.setZ(i, z + Math.sign(z) * amount * dome);
+    function createDiscGeometry(width, height) {
+      if (state.discInflate <= 0.001) {
+        const flat = new THREE.CylinderGeometry(0.5, 0.5, state.thickness, 128, 1, false);
+        flat.rotateX(Math.PI / 2);
+        flat.scale(width, height, 1);
+        flat.computeVertexNormals();
+        return flat;
       }
-      position.needsUpdate = true;
+
+      const minDimension = Math.min(width, height);
+      const halfDepth = state.thickness * 0.5 + minDimension * 0.16 * state.discInflate;
+      const profile = [];
+      const profileSteps = 34;
+      for (let i = 0; i <= profileSteps; i++) {
+        const angle = (i / profileSteps) * Math.PI;
+        const radius = Math.sin(angle) * 0.5;
+        const depth = Math.cos(angle) * halfDepth;
+        profile.push(new THREE.Vector2(radius, depth));
+      }
+
+      const geometry = new THREE.LatheGeometry(profile, 128);
+      geometry.rotateX(Math.PI / 2);
+      geometry.scale(width, height, 1);
       geometry.computeVertexNormals();
+      return geometry;
     }
 
     function createMainGeometry() {
       const { width, height } = getPanelDimensions();
       if (state.shape === 'disc') {
-        const geometry = new THREE.CylinderGeometry(0.5, 0.5, state.thickness, 96, 1, false);
-        geometry.rotateX(Math.PI / 2);
-        geometry.scale(width, height, 1);
-        inflateDiscGeometry(geometry, width, height);
-        geometry.computeVertexNormals();
-        return geometry;
+        return createDiscGeometry(width, height);
       }
 
       const cornerRadius = Math.min(width, height) * state.cornerRadius;
@@ -849,6 +998,9 @@
       items = [];
       if (sharedGeometry) sharedGeometry.dispose();
       sharedGeometry = createMainGeometry();
+      ensureCustomTransforms();
+      loadSelectedCustomTransform();
+      syncUI();
 
       for (let i = 0; i < state.count; i++) {
         const group = new THREE.Group();
@@ -864,8 +1016,8 @@
         const backLayer = new THREE.Mesh(sharedGeometry, backLayerMaterial);
         backLayer.name = `backLayer_${i}`;
         backLayer.visible = state.backLayer && state.backLayerOpacity > 0;
-        backLayer.position.z = -state.thickness * (0.35 + state.backLayerBlur * 0.9);
-        backLayer.scale.setScalar(1 + state.backLayerBlur * 0.08);
+        backLayer.position.z = -state.thickness * (0.18 + state.backLayerBlur * 0.25);
+        backLayer.scale.setScalar(1);
         backLayer.renderOrder = i * 3;
 
         const glass = new THREE.Mesh(sharedGeometry, glassMaterial);
@@ -887,6 +1039,14 @@
       const half = (count - 1) / 2;
       const arcSpan = Math.PI * 1.18;
       const radius = 3.0 * state.spacing;
+      const startAngle = THREE.MathUtils.degToRad(state.layoutStartAngle);
+
+      const facingRotation = (angle) => {
+        if (state.layoutFacing === 'same direction') return 0;
+        if (state.layoutFacing === 'inward') return -angle;
+        if (state.layoutFacing === 'outward') return -angle + Math.PI;
+        return -angle + Math.PI / 2;
+      };
 
       items.forEach((item, i) => {
         const t = count === 1 ? 0.5 : i / (count - 1);
@@ -896,24 +1056,36 @@
         const rotation = item.baseRotation;
         position.set(0, 0, 0);
         rotation.set(0, 0, 0);
+        item.group.scale.setScalar(1);
+
+        if (state.layout === 'custom') {
+          const data = customTransforms[i] || defaultCustomTransform(i);
+          position.set(data.x, data.y, data.z);
+          rotation.set(
+            THREE.MathUtils.degToRad(data.rx),
+            THREE.MathUtils.degToRad(data.ry),
+            THREE.MathUtils.degToRad(data.rz)
+          );
+          item.group.scale.setScalar(data.scale);
+        }
 
         if (state.layout === 'line') {
           const wave = Math.sin((t - 0.5) * Math.PI * 2 * state.lineWaveFrequency) * state.lineWaveAmount;
-          position.set(centered * 0.62 * state.spacing, 0, centered * 0.08 * state.spacing + wave);
-          rotation.y = -0.18 - wave * 0.08;
+          position.set(centered * state.lineSpacingX * state.spacing, 0, centered * state.lineSpacingZ * state.spacing + wave);
+          rotation.y = state.layoutFacing === 'same direction' ? 0 : -0.18 - wave * 0.08;
         }
 
         if (state.layout === 'arc') {
-          const a = (t - 0.5) * arcSpan;
+          const a = startAngle + (t - 0.5) * arcSpan;
           position.set(Math.sin(a) * radius, 0, Math.cos(a) * radius * 0.48);
-          rotation.y = -a * 0.72;
+          rotation.y = facingRotation(a);
         }
 
         if (state.layout === 'ring') {
-          const a = closedT * Math.PI * 2;
+          const a = startAngle + closedT * Math.PI * 2;
           const ringRadius = 2.75 * state.spacing;
           position.set(Math.cos(a) * ringRadius, 0, Math.sin(a) * ringRadius);
-          rotation.y = -a + Math.PI / 2;
+          rotation.y = facingRotation(a);
         }
 
         item.group.position.copy(position);
@@ -950,8 +1122,8 @@
         item.backLayer.visible = state.backLayer && state.backLayerOpacity > 0;
         item.backLayer.material.opacity = state.backLayer ? state.backLayerOpacity : 0;
         item.backLayer.material.color.copy(backLayerMaterial.color);
-        item.backLayer.position.z = -state.thickness * (0.35 + state.backLayerBlur * 0.9);
-        item.backLayer.scale.setScalar(1 + state.backLayerBlur * 0.08);
+        item.backLayer.position.z = -state.thickness * (0.18 + state.backLayerBlur * 0.25);
+        item.backLayer.scale.setScalar(1);
       });
     }
 
@@ -1132,7 +1304,7 @@
       const elapsed = clock.elapsedTime;
       if (state.motion && state.groupRotate) masterGroup.rotation.y += state.groupSpeed * dt;
       items.forEach((item, i) => {
-        const phase = i * 0.18;
+        const phase = i * state.selfSpinOffset;
         const baseX = THREE.MathUtils.degToRad(state.shapeRotX);
         const baseY = THREE.MathUtils.degToRad(state.shapeRotY);
         const baseZ = THREE.MathUtils.degToRad(state.shapeRotZ);
@@ -1154,6 +1326,7 @@
       applyTheme();
     });
     applyTheme();
+    refreshConditionalUI();
     applyLook();
     rebuildItems();
     resize();
