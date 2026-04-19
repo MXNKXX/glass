@@ -1110,6 +1110,7 @@
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
     const view = document.querySelector('#view');
     const canvas = document.querySelector('#canvas');
@@ -1152,6 +1153,7 @@
       panelAspect: 1,
       cornerRadius: 0.18,
       discInflate: 0,
+      discEdgeRound: 0.35,
       rotationPreset: 'front 0deg',
       shapeRotX: 0,
       shapeRotY: 0,
@@ -1196,9 +1198,11 @@
       perspectiveStrength: 0,
       focusBlur: false,
       focusDistance: 8,
-      focusAmount: 0.35,
+      focusAmount: 0.45,
       backgroundColor: '#161b32',
+      backgroundSaturation: 1,
       objectColor: '#fee500',
+      objectSaturation: 1,
       panelGradientColor: '#ff7700',
       panelGradientAmount: 0.85,
       panelGradientDirection: 'diagonal',
@@ -1263,11 +1267,13 @@
     const renderPass = new RenderPass(scene, camera);
     const bokehPass = new BokehPass(scene, camera, {
       focus: state.focusDistance,
-      aperture: 0.000012 + state.focusAmount * 0.00007,
-      maxblur: state.focusAmount * 0.018
+      aperture: 0.00018 + state.focusAmount * 0.0018,
+      maxblur: 0.004 + state.focusAmount * 0.035
     });
+    const outputPass = new OutputPass();
     composer.addPass(renderPass);
     composer.addPass(bokehPass);
+    composer.addPass(outputPass);
 
     const backdropMaterial = new THREE.MeshBasicMaterial({
       color: state.backgroundColor,
@@ -1516,7 +1522,7 @@
       'lineWaveAmount', 'lineWaveDepth', 'lineWaveFrequency', 'lineWaveStyle', 'lineWaveSpeed', 'axisRotX', 'axisRotY', 'axisRotZ',
       'spiralTurns', 'spiralRise', 'spiralSpread', 'coilTurns', 'coilRadius', 'coilGap', 'coilFlowSpeed',
       'Randomize roll',
-      'cornerRadius', 'discInflate', 'shapeRotX', 'shapeRotY', 'shapeRotZ',
+      'cornerRadius', 'discInflate', 'discEdgeRound', 'shapeRotX', 'shapeRotY', 'shapeRotZ',
       'panelGradientDirection', 'toneMap', 'toneShadowColor', 'toneMidColor', 'toneHighlightColor',
       'toneShadowLift', 'toneMapAmount', 'toneHighlightStrength',
       'cameraYaw', 'cameraPitch', 'cameraRoll', 'focusDistance', 'focusAmount',
@@ -1555,6 +1561,7 @@
         { key: 'panelAspect', label: 'Aspect', type: 'range', min: 0.35, max: 2.4, step: 0.01, rebuild: true },
         { key: 'cornerRadius', label: 'Corners', type: 'range', min: 0.02, max: 0.5, step: 0.01, rebuild: true, showWhen: () => state.shape === 'roundedRect' },
         { key: 'discInflate', label: 'Bulge', type: 'range', min: 0, max: 1.2, step: 0.01, rebuild: true, showWhen: () => state.shape === 'disc' },
+        { key: 'discEdgeRound', label: 'Disc edge', type: 'range', min: 0, max: 1, step: 0.01, rebuild: true, showWhen: () => state.shape === 'disc' },
         { key: 'thickness', label: 'Thickness', type: 'range', min: 0.02, max: 0.28, step: 0.005, rebuild: true },
         { key: 'rotationPreset', label: 'Pose', type: 'select', options: ['custom', 'front 0deg', 'side 90deg', 'back 180deg', 'flat top 90deg', 'roll 90deg'], rotationPreset: true },
         { key: 'shapeRotX', label: 'Tilt X', type: 'range', min: -90, max: 90, step: 1 },
@@ -1589,8 +1596,10 @@
       { title: 'Material', side: 'right', controls: [
         { type: 'subhead', label: 'Color' },
         { key: 'backgroundColor', label: 'Backdrop', type: 'color' },
+        { key: 'backgroundSaturation', label: 'Backdrop saturation', type: 'range', min: 0, max: 2, step: 0.01 },
         { key: 'objectColor', label: 'Base color', type: 'color' },
         { key: 'panelGradientColor', label: 'Blend color', type: 'color' },
+        { key: 'objectSaturation', label: 'Object saturation', type: 'range', min: 0, max: 2, step: 0.01 },
         { key: 'panelGradientAmount', label: 'Blend', type: 'range', min: 0, max: 1, step: 0.01 },
         { key: 'panelGradientDirection', label: 'Blend direction', type: 'select', options: ['horizontal', 'horizontal reverse', 'vertical', 'vertical reverse', 'diagonal', 'diagonal reverse'] },
         { type: 'subhead', label: 'Surface' },
@@ -2037,6 +2046,15 @@
       return null;
     }
 
+    function colorWithSaturation(hex, amount) {
+      const color = new THREE.Color(hex);
+      const hsl = { h: 0, s: 0, l: 0 };
+      color.getHSL(hsl);
+      hsl.s = THREE.MathUtils.clamp(hsl.s * amount, 0, 1);
+      color.setHSL(hsl.h, hsl.s, hsl.l);
+      return color;
+    }
+
     function hexToRgb(hex) {
       const normalized = normalizeHex(hex) || '#000000';
       return {
@@ -2435,11 +2453,47 @@
 
     function createDiscGeometry(width, height) {
       if (state.discInflate <= 0.001) {
-        const flat = new THREE.CylinderGeometry(0.5, 0.5, state.thickness, 128, 1, false);
-        flat.rotateX(Math.PI / 2);
-        flat.scale(width, height, 1);
-        flat.computeVertexNormals();
-        return flat;
+        const halfDepth = state.thickness * 0.5;
+        const minDimension = Math.min(width, height);
+        const edge = THREE.MathUtils.clamp(state.discEdgeRound, 0, 1);
+        const bevelRadius = Math.min(0.24, edge * 0.22);
+        const bevelDepth = Math.min(halfDepth * 0.92, minDimension * edge * 0.13);
+        const profile = [];
+
+        if (bevelRadius <= 0.001 || bevelDepth <= 0.001) {
+          profile.push(
+            new THREE.Vector2(0, halfDepth),
+            new THREE.Vector2(0.5, halfDepth),
+            new THREE.Vector2(0.5, -halfDepth),
+            new THREE.Vector2(0, -halfDepth)
+          );
+        } else {
+          const steps = 12;
+          profile.push(new THREE.Vector2(0, halfDepth));
+          profile.push(new THREE.Vector2(0.5 - bevelRadius, halfDepth));
+          for (let i = 0; i <= steps; i++) {
+            const a = (i / steps) * Math.PI * 0.5;
+            profile.push(new THREE.Vector2(
+              0.5 - bevelRadius + Math.sin(a) * bevelRadius,
+              halfDepth - (1 - Math.cos(a)) * bevelDepth
+            ));
+          }
+          profile.push(new THREE.Vector2(0.5, -halfDepth + bevelDepth));
+          for (let i = 0; i <= steps; i++) {
+            const a = (i / steps) * Math.PI * 0.5;
+            profile.push(new THREE.Vector2(
+              0.5 - (1 - Math.cos(a)) * bevelRadius,
+              -halfDepth + bevelDepth - Math.sin(a) * bevelDepth
+            ));
+          }
+          profile.push(new THREE.Vector2(0, -halfDepth));
+        }
+
+        const geometry = new THREE.LatheGeometry(profile, 128);
+        geometry.rotateX(Math.PI / 2);
+        geometry.scale(width, height, 1);
+        geometry.computeVertexNormals();
+        return geometry;
       }
 
       const minDimension = Math.min(width, height);
@@ -2645,9 +2699,15 @@
 
     function applyLook() {
       const gloss = state.gloss;
-      scene.background.set(state.backgroundColor);
-      backdropMaterial.color.set(state.backgroundColor);
-      const autoEdge = new THREE.Color(state.objectColor).lerp(new THREE.Color('#ffffff'), 0.35);
+      const backgroundColor = colorWithSaturation(state.backgroundColor, state.backgroundSaturation);
+      const objectColor = colorWithSaturation(state.objectColor, state.objectSaturation);
+      const panelGradientColor = colorWithSaturation(state.panelGradientColor, state.objectSaturation);
+      const toneShadowColor = colorWithSaturation(state.toneShadowColor, state.objectSaturation);
+      const toneMidColor = colorWithSaturation(state.toneMidColor, state.objectSaturation);
+      const toneHighlightColor = colorWithSaturation(state.toneHighlightColor, state.objectSaturation);
+      scene.background.copy(backgroundColor);
+      backdropMaterial.color.copy(backgroundColor);
+      const autoEdge = objectColor.clone().lerp(new THREE.Color('#ffffff'), 0.35);
       rimLight.color.copy(autoEdge);
       const solidGloss = state.materialStyle === 'solid gloss';
       const chrome = state.materialStyle === 'chrome';
@@ -2655,7 +2715,7 @@
       const glassSolidify = solidGloss || chrome ? 0 : state.glassSolidify;
       const toneMapStrength = solidGloss ? 1 : 0;
 
-      glassMaterial.color.set(state.objectColor);
+      glassMaterial.color.copy(objectColor);
       glassMaterial.transparent = !(solidGloss || chrome);
       glassMaterial.opacity = solidGloss || chrome ? 1 : state.opacity;
       glassMaterial.transmission = solidGloss || chrome ? 0 : Math.max(0, 0.18 + gloss * 0.58 - glassDensity * 0.08 - glassSolidify * 0.7);
@@ -2665,13 +2725,13 @@
       glassMaterial.clearcoat = chrome ? 1 : solidGloss ? 0.65 + gloss * 0.35 : Math.min(1, 0.55 + gloss * 0.45 + glassSolidify * 0.16);
       glassMaterial.clearcoatRoughness = chrome ? Math.max(0.01, 0.08 - gloss * 0.06) : solidGloss ? 0.18 - gloss * 0.14 : Math.max(0.018, 0.16 - gloss * 0.12 - glassSolidify * 0.04);
       glassMaterial.specularIntensity = chrome ? 1 : solidGloss ? 0.55 + gloss * 0.45 : Math.min(1, 0.62 + gloss * 0.38 + glassSolidify * 0.18);
-      glassMaterial.specularColor.set(solidGloss ? state.toneHighlightColor : '#ffffff');
+      glassMaterial.specularColor.copy(solidGloss ? toneHighlightColor : new THREE.Color('#ffffff'));
       glassMaterial.envMap = chrome ? chromeReflectionTarget.texture : null;
       glassMaterial.envMapIntensity = chrome ? 2.15 : 1;
       glassMaterial.thickness = solidGloss || chrome ? 0 : 0.45 + glassDensity * 0.75 + gloss * 0.35;
       glassMaterial.depthWrite = solidGloss || chrome;
-      glassMaterial.userData.uniforms.panelBaseColor.value.set(state.objectColor);
-      glassMaterial.userData.uniforms.panelGradientColor.value.set(state.panelGradientColor);
+      glassMaterial.userData.uniforms.panelBaseColor.value.copy(objectColor);
+      glassMaterial.userData.uniforms.panelGradientColor.value.copy(panelGradientColor);
       glassMaterial.userData.uniforms.panelGradientAmount.value = state.panelGradientAmount;
       glassMaterial.userData.uniforms.panelGradientDirection.value = {
         horizontal: 0,
@@ -2682,16 +2742,16 @@
         'diagonal reverse': 5
       }[state.panelGradientDirection] ?? 2;
       glassMaterial.userData.uniforms.toneMapEnabled.value = state.toneMap && solidGloss ? 1 : 0;
-      glassMaterial.userData.uniforms.toneShadowColor.value.set(state.toneShadowColor);
-      glassMaterial.userData.uniforms.toneMidColor.value.set(state.toneMidColor);
-      glassMaterial.userData.uniforms.toneHighlightColor.value.set(state.toneHighlightColor);
+      glassMaterial.userData.uniforms.toneShadowColor.value.copy(toneShadowColor);
+      glassMaterial.userData.uniforms.toneMidColor.value.copy(toneMidColor);
+      glassMaterial.userData.uniforms.toneHighlightColor.value.copy(toneHighlightColor);
       glassMaterial.userData.uniforms.toneShadowLift.value = state.toneShadowLift;
       glassMaterial.userData.uniforms.toneMapAmount.value = state.toneMapAmount * toneMapStrength;
       glassMaterial.userData.uniforms.toneHighlightStrength.value = state.toneHighlightStrength * (solidGloss ? 1 : 0);
       glassMaterial.userData.uniforms.chromeMode.value = chrome ? 1 : 0;
       glassMaterial.userData.uniforms.chromeReflectColor.value.copy(autoEdge);
 
-      const backingColor = new THREE.Color(state.objectColor).lerp(new THREE.Color('#ffffff'), 0.14);
+      const backingColor = objectColor.clone().lerp(new THREE.Color('#ffffff'), 0.14);
       fillMaterial.color.copy(backingColor);
       fillMaterial.opacity = solidGloss || chrome ? 0 : Math.min(0.58, state.glassBacking * (0.16 + state.opacity * 0.22 + glassSolidify * 0.16));
     }
@@ -2855,8 +2915,8 @@
       bokehPass.enabled = Boolean(state.focusBlur);
       if (!bokehPass.uniforms) return;
       bokehPass.uniforms.focus.value = state.focusDistance;
-      bokehPass.uniforms.aperture.value = 0.000012 + state.focusAmount * 0.00007;
-      bokehPass.uniforms.maxblur.value = state.focusAmount * 0.018;
+      bokehPass.uniforms.aperture.value = 0.00018 + state.focusAmount * 0.0018;
+      bokehPass.uniforms.maxblur.value = 0.004 + state.focusAmount * 0.035;
     }
 
     function renderScene(activeRenderer = renderer) {
@@ -2916,6 +2976,10 @@
       }
       nextState.canvasWidth = THREE.MathUtils.clamp(Math.round(nextState.canvasWidth), 320, 4096);
       nextState.canvasHeight = THREE.MathUtils.clamp(Math.round(nextState.canvasHeight), 320, 4096);
+      nextState.backgroundSaturation = THREE.MathUtils.clamp(Number(nextState.backgroundSaturation), 0, 2);
+      nextState.objectSaturation = THREE.MathUtils.clamp(Number(nextState.objectSaturation), 0, 2);
+      if (!Number.isFinite(nextState.backgroundSaturation)) nextState.backgroundSaturation = 1;
+      if (!Number.isFinite(nextState.objectSaturation)) nextState.objectSaturation = 1;
       if (!allowedExportScales.includes(nextState.exportScale)) nextState.exportScale = '1x';
       ['backgroundColor', 'objectColor', 'panelGradientColor', 'toneShadowColor', 'toneMidColor', 'toneHighlightColor'].forEach((key) => {
         nextState[key] = normalizeHex(nextState[key]) || state[key];
