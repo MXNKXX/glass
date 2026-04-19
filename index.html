@@ -1,107 +1,245 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Flow Field Studio</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plate Studio</title>
   <style>
     :root {
-      color-scheme: light;
-      --panel: #ffffff;
-      --panel-soft: #f2f2f4;
-      --control-bg: #ffffff;
-      --body-bg: #ffffff;
-      --view-bg: #f6f7f9;
-      --panel-bg: linear-gradient(180deg, rgba(251, 251, 253, .94), rgba(242, 243, 246, .92));
-      --section-bg: rgba(255, 255, 255, .72);
-      --button-bg: linear-gradient(180deg, #ffffff, #f1f1f3);
-      --canvas-shadow: 0 22px 70px rgba(20, 33, 45, .14);
-      --line: rgba(60, 60, 67, .16);
-      --text: #1d1d1f;
-      --label: #2b2b2f;
-      --muted: #6e6e73;
-      --muted-2: #6e6e73;
-      --accent: #007aff;
-      --focus-ring: rgba(0, 122, 255, .22);
-    }
-
-    body.dark {
       color-scheme: dark;
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --radius: 8px;
+      --radius-sm: 6px;
       --panel: #12151b;
-      --panel-soft: #1b2029;
-      --control-bg: #161b23;
-      --body-bg: #0e1116;
-      --view-bg: #0d1117;
-      --panel-bg: linear-gradient(180deg, #101319, #151922);
-      --section-bg: rgba(255, 255, 255, .035);
-      --button-bg: linear-gradient(180deg, #29303b, #202630);
-      --canvas-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+      --panel-soft: #1a202a;
+      --body-bg: #0c1017;
+      --view-bg: #0f131a;
+      --panel-bg: linear-gradient(180deg, #141922, #10141b);
+      --section-bg: rgba(255, 255, 255, .045);
+      --control-bg: rgba(255, 255, 255, .055);
+      --control-bg-hover: rgba(255, 255, 255, .085);
+      --button-bg: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.045));
+      --canvas-shadow: 0 18px 50px rgba(0, 0, 0, .32);
       --line: rgba(255, 255, 255, .12);
       --text: #eef3f7;
       --label: #dbe4ec;
       --muted: #99a4af;
-      --muted-2: #99a4af;
-      --accent: #82ddff;
-      --focus-ring: rgba(130, 221, 255, .22);
+      --accent: #0a84ff;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .24);
+      --shadow-md: 0 18px 44px rgba(0, 0, 0, .28);
     }
 
-    * {
-      box-sizing: border-box;
+    body.light {
+      color-scheme: light;
+      --panel: #ffffff;
+      --panel-soft: #f5f5f7;
+      --body-bg: #ffffff;
+      --view-bg: #ffffff;
+      --panel-bg: linear-gradient(180deg, #fbfbfd, #f5f5f7);
+      --section-bg: rgba(255, 255, 255, .82);
+      --control-bg: #f5f5f7;
+      --control-bg-hover: #ffffff;
+      --button-bg: linear-gradient(180deg, #ffffff, #f2f2f5);
+      --canvas-shadow: 0 18px 50px rgba(20, 33, 45, .12);
+      --line: rgba(0, 0, 0, .1);
+      --text: #1d1d1f;
+      --label: #2b2b2f;
+      --muted: #6e6e73;
+      --accent: #0a84ff;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);
+      --shadow-md: 0 18px 44px rgba(20, 33, 45, .12);
     }
 
-    html,
+    * { box-sizing: border-box; }
+
     body {
-      width: 100%;
-      height: 100%;
       margin: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
       background: var(--body-bg);
     }
 
-    body {
-      min-height: 100%;
-      overflow: hidden;
-    }
-
-    button,
-    input,
-    select {
-      font: inherit;
-    }
-
-    .app {
-      width: 100vw;
-      height: 100vh;
-      min-height: 0;
+    .app-shell {
       display: grid;
-      grid-template-columns: 320px minmax(0, 1fr);
-      grid-template-rows: minmax(0, 1fr) 56px;
-      overflow: hidden;
-      background: var(--panel);
+      grid-template-rows: 64px minmax(0, 1fr);
+      width: 100%;
+      height: 100%;
     }
 
-    .sidebar {
-      grid-row: 1 / 2;
+    .top-toolbar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-2);
+      align-items: center;
+      padding: var(--space-1) var(--space-2);
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(24px);
+    }
+
+    .brand {
+      display: flex;
+      gap: var(--space-1);
+      align-items: center;
+      min-width: 188px;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: radial-gradient(circle at 35% 30%, #ffffff, rgba(254, 229, 0, .78) 36%, rgba(255, 119, 0, .55) 70%);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: var(--space-1);
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .toolbar-actions button,
+    .top-toolbar button {
+      width: auto;
+      min-width: 76px;
+    }
+
+    .toolbar-actions .theme-toggle {
+      min-width: 54px;
+      opacity: .82;
+    }
+
+    .primary-action {
+      color: #ffffff;
+      border-color: color-mix(in srgb, var(--accent) 68%, transparent);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, #ffffff 8%), color-mix(in srgb, var(--accent) 78%, #000000 22%));
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+
+    .app-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
       min-width: 0;
-      padding: 18px 14px 22px;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .center-column {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      min-width: 0;
+      min-height: 0;
+      background: var(--view-bg);
+    }
+
+    .panel {
+      overflow-y: auto;
+      padding: var(--space-3) var(--space-2);
       background: var(--panel-bg);
       border-right: 1px solid var(--line);
-      overflow: auto;
       backdrop-filter: blur(24px);
-      scrollbar-width: thin;
-      scrollbar-color: color-mix(in srgb, var(--muted) 38%, transparent) transparent;
     }
 
-    .sidebar::-webkit-scrollbar {
-      width: 10px;
+    .panel.right-panel {
+      border-right: 0;
+      border-left: 1px solid var(--line);
     }
 
-    .sidebar::-webkit-scrollbar-thumb {
-      border: 3px solid transparent;
-      border-radius: 999px;
-      background-clip: padding-box;
-      background-color: color-mix(in srgb, var(--muted) 34%, transparent);
+    .right-panel {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: var(--space-2);
+      padding: var(--space-2);
+    }
+
+    .inspector-canvas .section {
+      margin-bottom: 0;
+    }
+
+    .inspector-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--section-bg);
+    }
+
+    .inspector-tab {
+      min-width: 0;
+      min-height: 28px;
+      padding: 4px 5px;
+      border: 0;
+      border-radius: var(--radius-sm);
+      color: var(--muted);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .inspector-tab.is-active {
+      color: var(--text);
+      background: var(--button-bg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .inspector-content {
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .inspector-panel {
+      display: none;
+    }
+
+    .inspector-panel.is-active {
+      display: block;
+    }
+
+    .control-group {
+      margin: 0 0 10px;
+    }
+
+    .control-group-title {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .advanced-group {
+      margin-top: var(--space-2);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--line);
+    }
+
+    .advanced-group .control-group-title {
+      margin-bottom: var(--space-1);
     }
 
     .panel-head {
@@ -118,7 +256,7 @@
 
     h1 {
       margin: 0 0 4px;
-      font-size: 16px;
+      font-size: 17px;
       line-height: 1.2;
       letter-spacing: 0;
       font-weight: 650;
@@ -127,1726 +265,2901 @@
     .intro {
       margin: 0;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 12px;
       line-height: 1.45;
     }
 
     .theme-toggle {
       width: auto;
-      min-width: 76px;
+      min-width: 54px;
       min-height: 30px;
       padding: 5px 10px;
       white-space: nowrap;
     }
 
-    .tabs {
+    .top-toolbar .select-row,
+    .top-toolbar .number-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 7px;
-      padding: 5px;
-      border-radius: 10px;
-      background: var(--panel-soft);
-      border: 1px solid var(--line);
-      margin-bottom: 12px;
+      grid-template-columns: 1fr;
+      gap: 5px;
+      margin: 0;
     }
 
-    .tab {
-      border: 0;
-      border-radius: 8px;
-      padding: 8px;
-      cursor: pointer;
+    .top-toolbar .select-row label,
+    .top-toolbar .number-row label {
       color: var(--muted);
-      background: transparent;
-      transition: color 160ms ease, background 160ms ease;
+      font-size: 10px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: .02em;
     }
 
-    .tab.active {
-      color: #ffffff;
-      background: var(--accent);
-      font-weight: 760;
-    }
-
-    .panel {
-      display: none;
-    }
-
-    .panel.active {
-      display: block;
+    .top-toolbar select,
+    .top-toolbar input[type="number"] {
+      min-height: 30px;
+      padding: 5px 8px;
+      font-size: 12px;
     }
 
     .section {
-      margin: 0 0 12px;
-      padding: 12px;
+      margin: 0 0 var(--space-2);
+      padding: var(--space-2);
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: var(--radius);
       background: var(--section-bg);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, .035), 0 10px 28px rgba(0, 0, 0, .035);
-      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-sm);
     }
 
-    .section:first-child {
-      padding-top: 2px;
-    }
-
-    .section-title {
-      margin: 0 0 13px;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 650;
+    .section h2 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
       letter-spacing: 0;
-      text-transform: none;
+      font-weight: 650;
     }
 
-    .swatches {
-      display: grid;
-      gap: 9px;
-    }
-
-    .color-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 9px;
-      margin-top: 14px;
-    }
-
-    .color-control {
-      min-width: 0;
-    }
-
-    .color-control label {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--label);
-      font-size: 12px;
-      font-weight: 400;
-    }
-
-    .color-control input[type="color"] {
-      width: 100%;
-      height: 30px;
-      padding: 2px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--control-bg);
-      cursor: pointer;
-    }
-
-    .color-control input[type="text"] {
-      width: 100%;
-      height: 30px;
-      margin-top: 7px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      background: var(--control-bg);
-      padding: 0 8px;
-      outline: none;
+    .subhead {
+      margin: var(--space-2) 0 var(--space-1);
+      padding-top: var(--space-1);
+      border-top: 1px solid var(--line);
+      color: var(--muted);
       font-size: 11px;
-      text-transform: uppercase;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .ratio-list {
-      display: grid;
-      gap: 7px;
-      margin-bottom: 12px;
-    }
-
-    .ratio-option {
-      display: grid;
-      grid-template-columns: 18px 48px minmax(0, 1fr);
-      align-items: center;
-      gap: 9px;
-      padding: 8px 9px;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      background: var(--control-bg);
-      cursor: pointer;
-      transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
-    }
-
-    .ratio-option:hover {
-      transform: translateY(-1px);
-    }
-
-    .ratio-option:has(input:checked) {
-      background: color-mix(in srgb, var(--accent) 12%, var(--panel-soft));
-      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-    }
-
-    .ratio-option input {
-      width: 16px;
-      height: 16px;
-      margin: 0;
-      accent-color: var(--accent);
-    }
-
-    .ratio-value {
-      color: var(--text);
-      font-size: 12px;
+      line-height: 1.2;
       font-weight: 700;
-      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
     }
 
-    .ratio-name {
-      color: var(--muted);
-      font-size: 12px;
-      text-align: right;
-      overflow-wrap: anywhere;
-    }
-
-    .size-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 9px;
-    }
-
-    .size-field label {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--label);
-      font-size: 12px;
-      font-weight: 400;
-    }
-
-    .size-field input {
-      width: 100%;
-      height: 32px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      background: var(--control-bg);
-      padding: 0 10px;
-      outline: none;
-    }
-
-    .segmented {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      padding: 5px;
-      border-radius: 10px;
-      background: var(--panel-soft);
-      border: 1px solid var(--line);
-      margin-bottom: 14px;
-    }
-
-    .segmented label {
-      display: grid;
-      place-items: center;
-      min-height: 30px;
-      border-radius: 8px;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 650;
-    }
-
-    .segmented input {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .segmented label:has(input:checked) {
-      color: #ffffff;
-      background: var(--accent);
-    }
-
-    .swatch {
-      width: 100%;
-      display: grid;
-      grid-template-columns: 46px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 10px;
-      padding: 8px;
-      border-radius: 10px;
-      color: var(--text);
-      background: var(--control-bg);
-      border: 1px solid var(--line);
-      cursor: pointer;
-      text-align: left;
-      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
-    }
-
-    .swatch:hover {
-      transform: translateY(-1px);
-    }
-
-    .swatch.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent) inset;
-    }
-
-    .swatch-strip {
-      height: 28px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-    }
-
-    .swatch span {
-      font-size: 12px;
-      font-weight: 650;
-      overflow-wrap: anywhere;
-    }
-
-    .swatch small {
-      color: var(--muted);
-      font-size: 11px;
+    .section h2 + .subhead {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
     }
 
     .control {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 7px 10px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-1);
       align-items: center;
-      margin: 10px 0;
+      margin: var(--space-1) 0;
     }
 
-    .label-row {
-      display: contents;
-      color: var(--label);
+    .control label {
+      min-width: 0;
       font-size: 12px;
-      font-weight: 400;
+      color: var(--label);
+      overflow-wrap: anywhere;
     }
 
-    .label-row output {
+    .value {
+      width: 78px;
+      min-height: 26px;
+      text-align: right;
+      font-size: 11px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 3px 6px;
+      font-family: inherit;
       color: var(--muted);
       font-variant-numeric: tabular-nums;
-      font-size: 11px;
-      min-width: 42px;
-      text-align: right;
-    }
-
-    .range-caps {
-      display: flex;
-      justify-content: space-between;
-      color: var(--muted-2);
-      font-size: 11px;
-      margin-top: 7px;
     }
 
     input[type="range"] {
-      width: 100%;
-      height: 18px;
       grid-column: 1 / -1;
-      appearance: none;
-      background: transparent;
-      margin: 0;
-      cursor: pointer;
+      width: 100%;
+      accent-color: var(--accent);
+      height: 18px;
     }
 
     input[type="range"]::-webkit-slider-runnable-track {
       height: 3px;
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--accent) 58%, var(--panel-soft));
-    }
-
-    input[type="range"]::-moz-range-track {
-      height: 3px;
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--accent) 58%, var(--panel-soft));
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 36%, var(--line));
     }
 
     input[type="range"]::-webkit-slider-thumb {
-      appearance: none;
       width: 16px;
       height: 16px;
-      margin-top: -7px;
+      margin-top: -6.5px;
+      border: 0;
       border-radius: 50%;
-      background: #f7feff;
-      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line));
-      box-shadow: 0 1px 4px rgba(0, 0, 0, .16);
+      background: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+      appearance: none;
     }
 
-    input[type="range"]::-moz-range-thumb {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #f7feff;
-      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line));
-      box-shadow: 0 1px 4px rgba(0, 0, 0, .16);
+    input[type="range"] {
+      appearance: none;
+      background: transparent;
     }
 
-    .toggle-row {
-      display: flex;
+    input[type="color"] {
+      width: 42px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: transparent;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      min-width: 0;
+      min-height: 30px;
+      color: var(--text);
+      background: var(--control-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 5px 8px;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    input[type="text"] {
+      text-transform: uppercase;
+    }
+
+    select {
+      width: 100%;
+      min-width: 0;
+      min-height: 30px;
+      color: var(--text);
+      background: var(--control-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 5px 8px;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .ui-row,
+    .select-row,
+    .number-row,
+    .check-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+      gap: var(--space-1);
       align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-top: 18px;
+      margin: var(--space-1) 0;
+    }
+
+    .ui-row label,
+    .select-row label,
+    .number-row label,
+    .check-row label {
+      min-width: 0;
+      font-size: 12px;
+      color: var(--label);
+      overflow-wrap: anywhere;
+    }
+
+    .right-panel .section {
+      padding: var(--space-2);
+    }
+
+    .right-panel .section h2 {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .right-panel .control,
+    .right-panel .select-row,
+    .right-panel .number-row,
+    .right-panel .check-row,
+    .right-panel .color-row {
+      display: grid;
+      grid-template-columns: minmax(98px, .72fr) minmax(0, 1fr) 78px;
+      gap: var(--space-1);
+      align-items: center;
+      margin: var(--space-1) 0;
+    }
+
+    .right-panel .control label,
+    .right-panel .select-row label,
+    .right-panel .number-row label,
+    .right-panel .check-row label,
+    .right-panel .color-row label {
+      min-width: 0;
       color: var(--label);
       font-size: 12px;
-      font-weight: 400;
+      line-height: 1.2;
     }
 
-    .switch {
+    .right-panel .control input[type="range"] {
+      grid-column: 2;
+      min-width: 0;
+    }
+
+    .right-panel .control .value {
+      grid-column: 3;
+      grid-row: 1;
+      width: 78px;
+    }
+
+    .right-panel .select-row select,
+    .right-panel .number-row input,
+    .right-panel .check-row input,
+    .right-panel .color-row .color-inputs {
+      grid-column: 2 / -1;
+      min-width: 0;
+    }
+
+    .right-panel .color-inputs {
+      grid-template-columns: minmax(0, 1fr) 48px;
+    }
+
+    .right-panel .color-swatch {
+      width: 48px;
+    }
+
+    .right-panel .toggle-row input[type="checkbox"],
+    .right-panel .check-row input[type="checkbox"] {
       position: relative;
-      width: 46px;
-      height: 26px;
-      flex: 0 0 auto;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      inset: 0;
-      border-radius: 999px;
-      background: var(--panel-soft);
+      width: 34px;
+      height: 20px;
+      appearance: none;
       border: 1px solid var(--line);
-      cursor: pointer;
-      transition: background 160ms ease;
+      border-radius: 999px;
+      background: var(--control-bg);
+      transition: background .18s ease, border-color .18s ease;
     }
 
-    .slider::before {
+    .right-panel .toggle-row input[type="checkbox"]::after,
+    .right-panel .check-row input[type="checkbox"]::after {
       content: "";
       position: absolute;
-      width: 20px;
-      height: 20px;
-      left: 3px;
       top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
+      background: var(--text);
+      transition: transform .18s ease;
+    }
+
+    .right-panel .toggle-row input[type="checkbox"]:checked,
+    .right-panel .check-row input[type="checkbox"]:checked {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .right-panel .toggle-row input[type="checkbox"]:checked::after,
+    .right-panel .check-row input[type="checkbox"]:checked::after {
+      transform: translateX(14px);
       background: #ffffff;
-      box-shadow: 0 1px 5px rgba(0, 0, 0, .22);
-      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
     }
 
-    .switch input:checked + .slider {
-      background: color-mix(in srgb, var(--accent) 28%, var(--panel-soft));
+    .color-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+      margin: var(--space-1) 0;
     }
 
-    .switch input:checked + .slider::before {
-      transform: translateX(19px);
-      background: #ffffff;
+    .color-row label {
+      font-size: 12px;
+      color: var(--label);
     }
 
-    .button {
-      width: 100%;
-      display: inline-flex;
+    .color-inputs {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-1);
       align-items: center;
-      justify-content: center;
+    }
+
+    .color-swatch {
+      width: 64px;
+      min-height: 30px;
+      padding: 3px;
+      border-radius: var(--radius);
+      background: var(--control-bg);
+    }
+
+    .color-swatch span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 22px;
+      border: 1px solid rgba(0, 0, 0, .16);
+      border-radius: var(--radius-sm);
+    }
+
+    input[type="checkbox"] {
+      justify-self: start;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    button {
+      width: 100%;
       min-height: 34px;
-      margin-top: 14px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       color: var(--text);
       background: var(--button-bg);
+      font: inherit;
+      font-size: 12px;
       cursor: pointer;
-      font-weight: 400;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+      box-shadow: var(--shadow-sm);
     }
 
-    .button:disabled {
-      opacity: 0.62;
+    button:hover {
+      border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+      background: var(--control-bg-hover);
+    }
+
+    .picker-backdrop {
+      position: fixed;
+      left: 340px;
+      bottom: 24px;
+      z-index: 20;
+      pointer-events: none;
+      touch-action: none;
+    }
+
+    .picker-dialog {
+      width: min(360px, calc(100vw - 28px));
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      pointer-events: auto;
+    }
+
+    .picker-title {
+      margin: 0;
+      padding: var(--space-1) var(--space-2);
+      color: var(--text);
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.2;
+      text-align: left;
+      font-weight: 650;
+      cursor: move;
+      user-select: none;
+    }
+
+    .picker-body {
+      display: grid;
+      grid-template-columns: 1fr 26px;
+      gap: var(--space-1);
+      padding: var(--space-2);
+    }
+
+    .sv-plane {
+      position: relative;
+      height: 184px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      cursor: crosshair;
+      overflow: hidden;
+      background: #ff0000;
+    }
+
+    .sv-plane::before,
+    .sv-plane::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .sv-plane::before {
+      background: linear-gradient(90deg, #ffffff, rgba(255, 255, 255, 0));
+    }
+
+    .sv-plane::after {
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0), #000000);
+    }
+
+    .picker-handle {
+      position: absolute;
+      z-index: 2;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .9);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .hue-bar {
+      position: relative;
+      height: 184px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      cursor: ns-resize;
+      background: linear-gradient(180deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+    }
+
+    .hue-handle {
+      position: absolute;
+      left: -5px;
+      right: -5px;
+      height: 10px;
+      border: 2px solid #ffffff;
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .75);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .picker-preview {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-1);
+      text-align: left;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .preview-box {
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #ffffff;
+    }
+
+    .picker-fields {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(3, 1fr);
+      align-content: start;
+      gap: var(--space-1);
+    }
+
+    .picker-field {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 5px;
+      align-items: center;
+      color: var(--label);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .picker-field input {
+      width: 100%;
+      min-height: 26px;
+      color: var(--text);
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 3px 6px;
+      font: inherit;
+      font-size: 11px;
+      text-transform: none;
+    }
+
+    .picker-field.hex {
+      grid-column: 1 / -1;
+      grid-template-columns: 18px 1fr;
+      margin-top: 0;
+    }
+
+    .picker-actions {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .picker-actions button {
+      min-height: 32px;
+      color: var(--text);
+      background: var(--button-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .picker-actions button:hover {
+      border-color: rgba(0, 122, 255, .55);
+    }
+
+    button.is-recording {
+      color: #ffffff;
+      border-color: rgba(255, 59, 48, .55);
+      background: linear-gradient(180deg, #ff453a, #d70015);
+      box-shadow: 0 0 0 3px rgba(255, 59, 48, .16);
       cursor: wait;
     }
 
-    .preview-wrap {
-      grid-row: 1 / 2;
-      min-width: 0;
-      min-height: 0;
-      display: grid;
-      grid-template-rows: minmax(0, 1fr);
-      background: var(--view-bg);
-      overflow: hidden;
+    .is-hidden { display: none !important; }
+
+    .drawer {
+      position: fixed;
+      top: 64px;
+      right: 0;
+      bottom: 0;
+      z-index: 18;
+      width: 320px;
+      overflow-y: auto;
+      padding: var(--space-2);
+      background: var(--panel-bg);
+      border-left: 1px solid var(--line);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(24px);
+      transform: translateX(100%);
+      transition: transform .22s ease;
     }
 
-    .stage {
+    .drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .drawer-head {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 var(--space-2);
+    }
+
+    .drawer-head h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .export-summary {
+      display: grid;
+      gap: 4px;
+      margin: 0 0 var(--space-2);
+      padding: 10px var(--space-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--section-bg) 68%, transparent);
+    }
+
+    .export-summary-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .export-summary-value {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .drawer-close {
+      width: 30px;
+      min-width: 30px;
+      min-height: 30px;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .drawer .section {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .drawer .section > h2 {
+      display: none;
+    }
+
+    .export-group {
+      margin: 0 0 var(--space-2);
+      padding: var(--space-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--section-bg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .export-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .export-group-title {
+      margin: 0 0 var(--space-1);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .export-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-1);
+    }
+
+    .export-actions .ui-button {
+      margin: 0;
+      min-height: 38px;
+      padding-inline: 10px;
+      font-size: 12px;
+    }
+
+    .export-actions .ui-button:only-child {
+      grid-column: 1 / -1;
+    }
+
+    .export-group .ui-row:first-of-type {
+      margin-top: 0;
+    }
+
+    .export-group .ui-button:last-child,
+    .export-group .ui-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .view {
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       min-width: 0;
       min-height: 0;
-      display: grid;
-      place-items: center;
+      overflow: hidden;
       padding: 22px;
-      overflow: hidden;
-    }
-
-    .artboard {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      background: #1d3448;
-      max-width: 100%;
-      max-height: 100%;
-      box-shadow: var(--canvas-shadow);
-      border-radius: 10px;
+      background: var(--view-bg);
     }
 
     canvas {
       display: block;
-      width: 100%;
-      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      box-shadow: var(--canvas-shadow);
     }
 
-    .notice {
-      position: absolute;
-      inset: 0;
-      display: none;
-      place-items: center;
-      padding: 28px;
-      text-align: center;
-      color: var(--text);
-      background: var(--panel-soft);
-      z-index: 2;
-    }
-
-    .notice.show {
-      display: grid;
-    }
-
-    .notice strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 17px;
-    }
-
-    .notice p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.55;
-      max-width: 420px;
-    }
-
-    .export-bar {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: auto auto auto auto;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      background: var(--panel-bg);
-      border-top: 1px solid var(--line);
-    }
-
-    .export-title {
-      margin-right: 8px;
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 650;
-      text-transform: none;
-      letter-spacing: 0;
-    }
-
-    select,
-    .export-button {
-      height: 34px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      background: var(--panel-soft);
-      padding: 0 12px;
-      outline: none;
-    }
-
-    .export-button {
-      color: var(--text);
-      background: var(--button-bg);
-      border-color: var(--line);
-      font-weight: 400;
-      cursor: pointer;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
-    }
-
-    .export-button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
-
-    button:hover,
-    .export-button:hover,
-    .button:hover {
-      border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
-    }
-
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    select:focus {
-      border-color: color-mix(in srgb, var(--accent) 68%, var(--line));
-      box-shadow: 0 0 0 3px var(--focus-ring);
-    }
-
-    @media (max-width: 900px) {
-      body {
-        overflow: auto;
+    @media (max-width: 1040px) {
+      .app-body {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
       }
-
-      .app {
-        width: 100vw;
-        height: 100vh;
+      .center-column {
         min-height: 0;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(360px, 1fr) auto;
       }
-
-      .sidebar {
-        grid-row: 1 / 2;
-        border-right: 0;
-        border-bottom: 1px solid var(--line);
-        max-height: 48vh;
-      }
-
-      .preview-wrap {
-        grid-row: 2 / 3;
-      }
-
-      .stage {
-        padding: 0;
-      }
-
-      .export-bar {
-        grid-row: 3 / 4;
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .export-title {
+      .right-panel {
         grid-column: 1 / -1;
-        text-align: left;
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+        gap: 12px;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+      .right-panel .section {
+        margin-bottom: 0;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body { overflow: auto; }
+      .app-shell {
+        height: auto;
+        min-height: 100vh;
+      }
+      .top-toolbar {
+        grid-template-columns: 1fr;
+      }
+      .toolbar-actions {
+        justify-content: stretch;
+      }
+      .toolbar-actions button {
+        flex: 1;
+      }
+      .app-body {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        height: auto;
+      }
+      .center-column {
+        grid-row: 1;
+        height: auto;
+        min-height: 0;
+      }
+      .view {
+        height: 48vh;
+        min-height: 380px;
+        padding: 12px;
+      }
+      .panel {
+        grid-row: 2;
+        border-right: 0;
+        border-top: 1px solid var(--line);
+      }
+      .right-panel {
+        grid-column: auto;
+        grid-row: 3;
+        display: block;
+        border-left: 0;
+      }
+      .right-panel .section {
+        margin-bottom: 12px;
+      }
+      .picker-body {
+        grid-template-columns: 1fr 26px;
+      }
+      .picker-backdrop {
+        left: 12px;
+        bottom: 12px;
+      }
+      .drawer {
+        top: 0;
+        width: min(340px, 100vw);
       }
     }
   </style>
 </head>
 <body>
-  <main class="app" aria-label="Flow Field Studio">
-    <aside class="sidebar">
-      <div class="panel-head">
-        <div class="panel-copy">
-          <h1>Flow Field Studio</h1>
-          <p class="intro">Soft scalar fields with a progressive boundary stroke.</p>
+  <main class="app-shell">
+    <header class="top-toolbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <h1>Plate Studio</h1>
+          <p>3D glass composition</p>
         </div>
-        <button class="theme-toggle" id="themeToggle" type="button">Light UI</button>
       </div>
+      <div></div>
+      <div class="toolbar-actions">
+        <button class="theme-toggle" id="themeToggle" type="button">Light</button>
+        <button class="primary-action" id="exportToggle" type="button">Export</button>
+      </div>
+    </header>
 
-      <nav class="tabs" aria-label="Control tabs">
-        <button class="tab active" type="button" data-tab="basic">Basic</button>
-        <button class="tab" type="button" data-tab="advanced">Advanced</button>
-      </nav>
-
-      <section class="panel active" id="basicPanel">
-        <div class="section">
-          <h2 class="section-title">Canvas Size</h2>
-          <div class="ratio-list" id="ratioList" aria-label="Canvas ratio"></div>
-          <div class="size-grid">
-            <div class="size-field">
-              <label for="canvasWidth">Width</label>
-              <input id="canvasWidth" type="number" min="64" max="8192" step="1" value="1280">
-            </div>
-            <div class="size-field">
-              <label for="canvasHeight">Height</label>
-              <input id="canvasHeight" type="number" min="64" max="8192" step="1" value="720">
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Colour Preset</h2>
-          <div class="swatches" id="swatches"></div>
-          <div class="color-grid" aria-label="Custom palette colours">
-            <div class="color-control">
-              <label for="colorA">Area A</label>
-              <input id="colorA" type="color" value="#f0c8c1">
-              <input id="colorAHex" type="text" value="#F0C8C1" maxlength="7" spellcheck="false" aria-label="Area A hex">
-            </div>
-            <div class="color-control">
-              <label for="colorB">Area B</label>
-              <input id="colorB" type="color" value="#eb7778">
-              <input id="colorBHex" type="text" value="#EB7778" maxlength="7" spellcheck="false" aria-label="Area B hex">
-            </div>
-            <div class="color-control">
-              <label for="boundaryColor">Edge</label>
-              <input id="boundaryColor" type="color" value="#ffffff">
-              <input id="boundaryColorHex" type="text" value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Edge hex">
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="control">
-            <div class="label-row">
-              <label for="basicForm">Form</label>
-              <output id="basicFormValue">0.280</output>
-            </div>
-            <input id="basicForm" type="range" min="0" max="1" step="0.001" value="0.28">
-            <div class="range-caps"><span>Simple</span><span>Complex</span></div>
-          </div>
-
-          <div class="control">
-            <div class="label-row">
-              <label for="basicMotion">Dynamic</label>
-              <output id="basicMotionValue">0.360</output>
-            </div>
-            <input id="basicMotion" type="range" min="0" max="1" step="0.001" value="0.36">
-            <div class="range-caps"><span>Slow</span><span>Active</span></div>
-          </div>
-
-          <div class="toggle-row">
-            <span>Animate</span>
-            <label class="switch" aria-label="Toggle animation">
-              <input id="animateToggle" type="checkbox" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <button class="button" id="randomiseButton" type="button">Randomise form</button>
+    <div class="app-body">
+      <section class="center-column">
+        <div class="view" id="view">
+          <canvas id="canvas"></canvas>
         </div>
       </section>
 
-      <section class="panel" id="advancedPanel">
-        <div class="section">
-          <h2 class="section-title">Form</h2>
-          <div class="control" data-control="bend"></div>
-          <div class="control" data-control="radius"></div>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Boundary</h2>
-          <div class="control" data-control="edgeMin"></div>
-          <div class="control" data-control="edgeMax"></div>
-          <div class="control" data-control="blur"></div>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Flow Dynamics</h2>
-          <div class="control" data-control="flowSpeed"></div>
-          <div class="control" data-control="splitFlow"></div>
-          <div class="control" data-control="edgeTension"></div>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">Texture</h2>
-          <div class="segmented" aria-label="Grain mode">
-            <label>
-              <input type="radio" name="grainMode" value="still" checked>
-              Still
-            </label>
-            <label>
-              <input type="radio" name="grainMode" value="animated">
-              Animated
-            </label>
-          </div>
-          <div class="control" data-control="grain"></div>
-        </div>
-      </section>
-    </aside>
-
-    <section class="preview-wrap">
-      <div class="stage">
-        <div class="artboard">
-          <canvas id="previewCanvas" aria-label="Generated flow field preview"></canvas>
-          <div class="notice" id="notice">
-            <div>
-              <strong>WebGL2 is not available.</strong>
-              <p>This artwork is rendered with a fragment shader. Please open this file in a browser with WebGL2 support enabled.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="export-bar">
-      <div class="export-title">Export</div>
-      <button class="export-button" id="downloadImage" type="button">Download JPG</button>
-      <select id="videoDuration" aria-label="Video duration">
-        <option value="3">3s</option>
-        <option value="5">5s</option>
-        <option value="8">8s</option>
-        <option value="10">10s</option>
-      </select>
-      <button class="export-button" id="downloadVideo" type="button">Download MP4</button>
-    </footer>
+      <aside class="panel right-panel">
+        <div class="inspector-canvas" id="canvasUi"></div>
+        <div class="inspector-tabs" id="inspectorTabs"></div>
+        <div class="inspector-content" id="rightUi"></div>
+      </aside>
+    </div>
   </main>
 
-  <script>
-    "use strict";
+  <aside class="drawer" id="exportDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <h2>Export</h2>
+      <button class="drawer-close" id="exportClose" type="button" aria-label="Close export drawer">×</button>
+    </div>
+    <div class="export-summary" id="exportSummary">
+      <span class="export-summary-label">Output</span>
+      <span class="export-summary-value">1920 × 1080</span>
+    </div>
+    <div id="exportUi"></div>
+  </aside>
 
-    const MAX_BLOBS = 5;
-    const EXPORT_FPS = 30;
-    const DPR_LIMIT = 2.4;
-    const FAMILIES = ["bean", "split", "ribbon", "crop"];
-    const ASPECT_RATIOS = [
-      { value: "1:1", label: "Square", w: 1, h: 1 },
-      { value: "16:9", label: "Widescreen", w: 16, h: 9 },
-      { value: "9:16", label: "Social story", w: 9, h: 16 },
-      { value: "4:3", label: "Classic", w: 4, h: 3 },
-      { value: "3:4", label: "Traditional", w: 3, h: 4 },
-      { value: "3:2", label: "Standard", w: 3, h: 2 },
-      { value: "2:3", label: "Portrait", w: 2, h: 3 },
-      { value: "1:2", label: "Vertical", w: 1, h: 2 },
-      { value: "2:1", label: "Horizontal", w: 2, h: 1 },
-      { value: "4:5", label: "Social post", w: 4, h: 5 }
-    ];
+  <div class="picker-backdrop is-hidden" id="colorPickerModal" aria-hidden="true">
+    <div class="picker-dialog" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <h2 class="picker-title" id="pickerTitle">Color Picker</h2>
+      <div class="picker-body">
+        <div class="sv-plane" id="svPlane"><span class="picker-handle" id="svHandle"></span></div>
+        <div class="hue-bar" id="hueBar"><span class="hue-handle" id="hueHandle"></span></div>
+        <div class="picker-preview">
+          <span>New</span>
+          <span>Current</span>
+          <div class="preview-box" id="newPreview"></div>
+          <div class="preview-box" id="currentPreview"></div>
+        </div>
+        <div class="picker-fields">
+          <label class="picker-field"><span>H</span><input id="pickerH" type="number" min="0" max="360" step="1"></label>
+          <label class="picker-field"><span>S</span><input id="pickerS" type="number" min="0" max="100" step="1"></label>
+          <label class="picker-field"><span>B</span><input id="pickerB" type="number" min="0" max="100" step="1"></label>
+          <label class="picker-field"><span>R</span><input id="pickerR" type="number" min="0" max="255" step="1"></label>
+          <label class="picker-field"><span>G</span><input id="pickerG" type="number" min="0" max="255" step="1"></label>
+          <label class="picker-field"><span>B</span><input id="pickerBlue" type="number" min="0" max="255" step="1"></label>
+          <label class="picker-field hex"><span>#</span><input id="pickerHex" type="text" maxlength="6"></label>
+        </div>
+        <div class="picker-actions">
+          <button id="pickerOk" type="button">Apply</button>
+          <button id="pickerCancel" type="button">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    const PALETTES = [
-      {
-        name: "Palette 01",
-        note: "blush / coral",
-        hexA: "#f0c8c1",
-        hexB: "#eb7778",
-        hexEdge: "#ffffff",
-        colorA: [0.941, 0.784, 0.757],
-        colorB: [0.922, 0.467, 0.471],
-        boundary: [1, 1, 1],
-        strip: "linear-gradient(90deg, #f0c8c1 0 48%, #ffffff 48% 52%, #eb7778 52% 100%)"
-      },
-      {
-        name: "Palette 02",
-        note: "blush / slate",
-        hexA: "#f0c8c1",
-        hexB: "#35556d",
-        hexEdge: "#ffffff",
-        colorA: [0.941, 0.784, 0.757],
-        colorB: [0.208, 0.333, 0.427],
-        boundary: [1, 1, 1],
-        strip: "linear-gradient(90deg, #f0c8c1 0 48%, #ffffff 48% 52%, #35556d 52% 100%)"
-      },
-      {
-        name: "Palette 03",
-        note: "cyan / slate",
-        hexA: "#a7edf8",
-        hexB: "#35556d",
-        hexEdge: "#ffffff",
-        colorA: [0.655, 0.929, 0.973],
-        colorB: [0.208, 0.333, 0.427],
-        boundary: [1, 1, 1],
-        strip: "linear-gradient(90deg, #a7edf8 0 48%, #ffffff 48% 52%, #35556d 52% 100%)"
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
       }
-    ];
+    }
+  </script>
 
-    const ADVANCED_CONTROLS = {
-      bend: { label: "Bend", min: 0.5, max: 1, step: 0.001 },
-      radius: { label: "Radius", min: 0.25, max: 1.45, step: 0.001 },
-      edgeMin: { label: "Edge Min", min: 0.002, max: 0.08, step: 0.001 },
-      edgeMax: { label: "Edge Max", min: 0.02, max: 0.2, step: 0.001 },
-      blur: { label: "Release Blur", min: 0.005, max: 0.22, step: 0.001 },
-      flowSpeed: { label: "Flow Speed", min: 0, max: 5, step: 0.001 },
-      splitFlow: { label: "Split / Merge", min: 0, max: 3, step: 0.001 },
-      edgeTension: { label: "Edge Grip", min: 0, max: 2, step: 0.001 },
-      grain: { label: "Grain", min: 0, max: 3, step: 0.001 }
-    };
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+
+    const view = document.querySelector('#view');
+    const canvas = document.querySelector('#canvas');
+    const rightUi = document.querySelector('#rightUi');
+    const canvasUi = document.querySelector('#canvasUi');
+    const exportUi = document.querySelector('#exportUi');
+    const exportDrawer = document.querySelector('#exportDrawer');
+    const exportSummary = document.querySelector('#exportSummary');
+    const exportToggle = document.querySelector('#exportToggle');
+    const exportClose = document.querySelector('#exportClose');
+    const themeToggle = document.querySelector('#themeToggle');
+    const inspectorTabs = document.querySelector('#inspectorTabs');
+    const colorPickerModal = document.querySelector('#colorPickerModal');
+    const pickerTitle = document.querySelector('#pickerTitle');
+    const svPlane = document.querySelector('#svPlane');
+    const hueBar = document.querySelector('#hueBar');
+    const svHandle = document.querySelector('#svHandle');
+    const hueHandle = document.querySelector('#hueHandle');
+    const newPreview = document.querySelector('#newPreview');
+    const currentPreview = document.querySelector('#currentPreview');
+    const pickerH = document.querySelector('#pickerH');
+    const pickerS = document.querySelector('#pickerS');
+    const pickerB = document.querySelector('#pickerB');
+    const pickerR = document.querySelector('#pickerR');
+    const pickerG = document.querySelector('#pickerG');
+    const pickerBlue = document.querySelector('#pickerBlue');
+    const pickerHex = document.querySelector('#pickerHex');
+    const pickerOk = document.querySelector('#pickerOk');
+    const pickerCancel = document.querySelector('#pickerCancel');
+    let pickerDrag = null;
 
     const state = {
-      seed: 8173,
-      family: "bean",
-      paletteIndex: 0,
-      basicForm: 0.28,
-      basicMotion: 0.36,
-      animate: true,
-      driftAmplitude: 0.16,
-      canvas: {
-        ratio: "16:9",
-        width: 1280,
-        height: 720
-      },
-      params: {
-        bend: 0.5,
-        radius: 0.8,
-        edgeStrength: 2.5,
-        edgeMin: 0.012,
-        edgeMax: 0.082,
-        blur: 0.095,
-        flowSpeed: 0.48,
-        splitFlow: 0.52,
-        edgeTension: 0.42,
-        grain: 0.75,
-        grainMode: 0
-      },
-      colors: {
-        colorA: [0.941, 0.784, 0.757],
-        colorB: [0.922, 0.467, 0.471],
-        boundary: [1, 1, 1]
-      },
-      blobs: []
+      lightUI: false,
+      canvasSize: '16:9 Widescreen',
+      canvasWidth: 1920,
+      canvasHeight: 1080,
+      shape: 'disc',
+      count: 14,
+      panelSize: 1,
+      panelAspect: 1,
+      cornerRadius: 0.18,
+      discInflate: 0,
+      rotationPreset: 'front 0deg',
+      shapeRotX: 0,
+      shapeRotY: 0,
+      shapeRotZ: 0,
+      layout: 'ring',
+      spacing: 1,
+      sizeVariation: 0,
+      tiltVariation: 0,
+      randomSeed: 1,
+      lineSpacingX: 0.62,
+      lineSpacingZ: 0.08,
+      lineWaveAmount: 0,
+      lineWaveDepth: 0.35,
+      lineWaveFrequency: 1.5,
+      lineWaveStyle: 'flow',
+      lineWaveSpeed: 1.15,
+      spiralTurns: 1.25,
+      spiralRise: 1.25,
+      spiralSpread: 1,
+      coilTurns: 2.5,
+      coilRadius: 1.2,
+      coilGap: 2.5,
+      coilFlowSpeed: 0.18,
+      layoutFacing: 'tangent',
+      layoutStartAngle: -90,
+      axisRotX: 0,
+      axisRotY: 0,
+      axisRotZ: 0,
+      motion: true,
+      groupRotate: true,
+      groupRotateMode: 'layout plane',
+      groupSpeed: 0.18,
+      selfSpin: true,
+      selfSpinTiming: 'sync',
+      selfSpeed: 0.55,
+      selfSpinOffset: 0.18,
+      cameraPreset: 'perspective',
+      cameraYaw: 37,
+      cameraPitch: 22,
+      cameraRoll: 0,
+      zoom: 1,
+      perspectiveStrength: 0,
+      focusBlur: false,
+      focusDistance: 8,
+      focusAmount: 0.35,
+      backgroundColor: '#161b32',
+      objectColor: '#fee500',
+      panelGradientColor: '#ff7700',
+      panelGradientAmount: 0.85,
+      panelGradientDirection: 'diagonal',
+      materialStyle: 'solid gloss',
+      toneMap: true,
+      toneShadowColor: '#fee500',
+      toneMidColor: '#ff7700',
+      toneHighlightColor: '#ffffff',
+      toneShadowLift: 0,
+      toneMapAmount: 0.62,
+      toneHighlightStrength: 0.5,
+      opacity: 1,
+      gloss: 1,
+      glassSolidify: 0,
+      glassBacking: 0.42,
+      thickness: 0.02,
+      exportScale: '1x',
+      videoBitrate: 18,
+      videoFps: 60,
+      videoDuration: 10
     };
 
-    const vertexSource = `#version 300 es
-      precision highp float;
-      layout(location = 0) in vec2 a_position;
-      out vec2 v_uv;
-      void main() {
-        v_uv = a_position * 0.5 + 0.5;
-        gl_Position = vec4(a_position, 0.0, 1.0);
-      }
-    `;
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true
+    });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-    const fragmentSource = `#version 300 es
-      precision highp float;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(state.backgroundColor);
 
-      #define MAX_BLOBS 5
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 80);
+    const target = new THREE.Vector3(0, 0, 0);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.copy(target);
 
-      in vec2 v_uv;
-      out vec4 outColor;
+    const masterGroup = new THREE.Group();
+    masterGroup.name = 'masterGroup';
+    scene.add(masterGroup);
+    const layoutGroup = new THREE.Group();
+    layoutGroup.name = 'layoutAxisGroup';
+    masterGroup.add(layoutGroup);
+    const orbitGroup = new THREE.Group();
+    orbitGroup.name = 'layoutOrbitGroup';
+    layoutGroup.add(orbitGroup);
 
-      uniform vec2 u_resolution;
-      uniform float u_time;
-      uniform float u_seed;
-      uniform int u_family;
-      uniform vec3 u_colorA;
-      uniform vec3 u_colorB;
-      uniform vec3 u_boundaryColor;
-      uniform float u_bend;
-      uniform float u_radius;
-      uniform float u_edgeStrength;
-      uniform float u_edgeMin;
-      uniform float u_edgeMax;
-      uniform float u_blur;
-      uniform float u_flowSpeed;
-      uniform float u_splitFlow;
-      uniform float u_edgeTension;
-      uniform float u_grain;
-      uniform float u_grainMode;
-      uniform float u_driftAmplitude;
-      uniform vec2 u_centers[MAX_BLOBS];
-      uniform vec4 u_blobShape[MAX_BLOBS];
-      uniform vec4 u_blobMotion[MAX_BLOBS];
-      uniform vec3 u_bias;
+    const ambient = new THREE.HemisphereLight(0xffffff, 0x9db2c0, 1.45);
+    const key = new THREE.DirectionalLight(0xffffff, 2.4);
+    key.position.set(4, 6, 5);
+    const rimLight = new THREE.DirectionalLight(0x95eaff, 2.1);
+    rimLight.position.set(-4, 2.5, -4);
+    scene.add(ambient, key, rimLight);
 
-      float hash12(vec2 p) {
-        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-        p3 += dot(p3, p3.yzx + 33.33);
-        return fract((p3.x + p3.y) * p3.z);
-      }
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    const bokehPass = new BokehPass(scene, camera, {
+      focus: state.focusDistance,
+      aperture: 0.000012 + state.focusAmount * 0.00007,
+      maxblur: state.focusAmount * 0.018
+    });
+    composer.addPass(renderPass);
+    composer.addPass(bokehPass);
 
-      float valueNoise(vec2 p) {
-        vec2 i = floor(p);
-        vec2 f = fract(p);
-        vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-        float a = hash12(i);
-        float b = hash12(i + vec2(1.0, 0.0));
-        float c = hash12(i + vec2(0.0, 1.0));
-        float d = hash12(i + vec2(1.0, 1.0));
-        return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-      }
+    const backdropMaterial = new THREE.MeshBasicMaterial({
+      color: state.backgroundColor,
+      side: THREE.BackSide,
+      depthWrite: false,
+      toneMapped: false
+    });
+    const backdropMesh = new THREE.Mesh(new THREE.SphereGeometry(36, 48, 24), backdropMaterial);
+    scene.add(backdropMesh);
 
-      float fbm(vec2 p) {
-        float v = 0.0;
-        float a = 0.5;
-        mat2 rot = mat2(0.8, -0.6, 0.6, 0.8);
-        for (int i = 0; i < 4; i++) {
-          v += a * valueNoise(p);
-          p = rot * p * 2.03 + 13.17;
-          a *= 0.52;
-        }
-        return v;
-      }
-
-      vec2 warp(vec2 p) {
-        float drive = max(0.02, u_flowSpeed) * 0.24;
-        float large = 0.52 + u_bend * 2.75;
-        float sweep = sin((p.y + u_seed * 0.017) * large + u_time * drive);
-        p.x += sweep * u_bend * 0.34;
-        p.y += sin((p.x + sweep * 0.42 - u_seed * 0.011) * (large * 0.72) - u_time * drive * 0.84) * u_bend * 0.26;
-        p += vec2(
-          sin(p.y * 0.92 + u_time * drive * 0.38 + u_seed * 0.03),
-          cos(p.x * 0.82 - u_time * drive * 0.33 + u_seed * 0.02)
-        ) * u_bend * 0.08;
-        return p;
-      }
-
-      float blobContribution(vec2 p, int i) {
-        vec2 center = u_centers[i];
-        vec4 shape = u_blobShape[i];
-        vec4 motion = u_blobMotion[i];
-
-        float speed = max(0.02, u_flowSpeed) * 0.72;
-        float breath = sin(u_time * speed * 1.7 + motion.z);
-        float converge = sin(u_time * speed + motion.w) * 0.5 + 0.5;
-        float ease = smoothstep(0.0, 1.0, converge);
-        vec2 orbit = vec2(
-          sin(u_time * speed * (0.62 + motion.x * 0.42) + motion.z),
-          cos(u_time * speed * (0.54 + motion.y * 0.38) + motion.w)
-        );
-        vec2 cross = vec2(
-          sin(u_time * speed * (0.21 + motion.y * 0.18) + motion.w * 1.37),
-          cos(u_time * speed * (0.24 + motion.x * 0.16) + motion.z * 1.19)
-        );
-        vec2 focus = vec2(
-          sin(u_time * speed * 0.31 + u_seed * 0.013) * 0.18,
-          cos(u_time * speed * 0.27 + u_seed * 0.017) * 0.14
-        );
-        float drive = u_driftAmplitude * (0.35 + u_splitFlow * 0.95);
-        float convergePull = (ease - 0.5) * 0.72 * drive;
-        vec2 drift = (orbit * 0.96 + cross * 0.48) * drive;
-        center += drift + (focus - center) * convergePull;
-
-        float angle = shape.z + sin(u_time * speed * 0.45 + motion.w) * 0.52 * drive;
-        float ca = cos(angle);
-        float sa = sin(angle);
-        mat2 rot = mat2(ca, -sa, sa, ca);
-        vec2 q = rot * (p - center);
-        float dynamicStretch = 1.0 + sin(u_time * speed * 0.64 + motion.z * 1.41) * 0.18 * min(2.2, u_splitFlow);
-        q.x *= shape.w * dynamicStretch;
-        q.y /= max(0.2, shape.w / dynamicStretch);
-
-        float r = max(0.08, u_radius * shape.x * (1.0 + breath * 0.004 * (0.35 + drive)));
-        float weightPulse = 1.0 + sin(u_time * speed * 0.9 + motion.w * 1.7) * 0.22 * min(2.4, u_splitFlow);
-        return shape.y * weightPulse * exp(-dot(q, q) / (r * r));
-      }
-
-      void main() {
-        vec2 uv = v_uv;
-        float aspect = u_resolution.x / max(1.0, u_resolution.y);
-        vec2 p = (uv - 0.5) * vec2(aspect, 1.0) * 2.0;
-        vec2 w = warp(p);
-
-        float flowSpeed = max(0.02, u_flowSpeed) * 0.52;
-        vec2 biasFlow = vec2(
-          sin(u_time * flowSpeed + u_seed * 0.019),
-          cos(u_time * flowSpeed * 0.83 + u_seed * 0.023)
-        ) * u_splitFlow * 0.28;
-        float splitWave = sin(u_time * flowSpeed * 1.62 + u_seed * 0.02) * u_splitFlow * 0.13;
-        float field = dot(w, u_bias.xy + biasFlow) * u_bias.z - 0.62 + splitWave;
-
-        for (int i = 0; i < MAX_BLOBS; i++) {
-          field += blobContribution(w, i);
-        }
-
-        field += (fbm(w * 0.72 + u_seed * 0.006) - 0.5) * 0.006;
-
-        float px = 1.25 / min(u_resolution.x, u_resolution.y);
-        float aa = fwidth(field) * 0.72 + px;
-        float mask = smoothstep(-aa, aa, field);
-        float distanceToLine = abs(field);
-        float edgeGrip = smoothstep(0.0, 1.0, sin(u_time * flowSpeed * 2.08 + u_seed * 0.031) * 0.5 + 0.5);
-        edgeGrip = clamp(mix(0.42, edgeGrip, u_edgeTension), 0.0, 1.0);
-        float thinEdge = min(u_edgeMin, u_edgeMax);
-        float broadEdge = max(u_edgeMin, u_edgeMax);
-        float dynamicThickness = mix(broadEdge, thinEdge, edgeGrip);
-        float dynamicBlur = mix(u_blur * 2.25, max(aa * 2.0, u_blur * 0.2), edgeGrip);
-        float strokeCore = max(aa * 1.6, dynamicThickness * mix(0.42, 0.82, edgeGrip));
-        float blurRadius = max(aa * 2.2, dynamicBlur);
-        float blurT = clamp((distanceToLine - strokeCore) / blurRadius, 0.0, 1.0);
-        float progressiveFade = blurT * blurT * blurT * (blurT * (blurT * 6.0 - 15.0) + 10.0);
-        float strokeAlpha = (1.0 - progressiveFade) * clamp(u_edgeStrength * 1.25, 0.0, 1.0);
-
-        vec3 baseColor = mix(u_colorA, u_colorB, mask);
-        float tonal = (fbm(w * 1.3 + vec2(8.1, 2.4)) - 0.5) * 0.035;
-        baseColor += tonal;
-
-        float vignette = smoothstep(1.35, 0.18, length((uv - 0.5) * vec2(aspect, 1.0)));
-        baseColor *= mix(0.88, 1.035, vignette);
-
-        float grainFrame = mix(0.0, fract(u_time) * 71.0, step(0.5, u_grainMode));
-        float grain = hash12(uv * u_resolution.xy + grainFrame) - 0.5;
-        baseColor += grain * u_grain * 0.115;
-        vec3 color = mix(baseColor, u_boundaryColor, strokeAlpha);
-
-        outColor = vec4(clamp(color, 0.0, 1.0), 1.0);
-      }
-    `;
-
-    function clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
+    function createStudioEnvironment() {
+      const envCanvas = document.createElement('canvas');
+      envCanvas.width = 512;
+      envCanvas.height = 256;
+      const ctx = envCanvas.getContext('2d');
+      const sky = ctx.createLinearGradient(0, 0, 0, envCanvas.height);
+      sky.addColorStop(0, '#f9fbff');
+      sky.addColorStop(0.28, '#7f93bd');
+      sky.addColorStop(0.58, '#151b32');
+      sky.addColorStop(1, '#05070d');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, envCanvas.width, envCanvas.height);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillRect(24, 34, 160, 16);
+      ctx.fillRect(300, 56, 128, 10);
+      ctx.fillStyle = 'rgba(254, 229, 0, 0.42)';
+      ctx.fillRect(56, 146, 210, 20);
+      ctx.fillStyle = 'rgba(10, 132, 255, 0.34)';
+      ctx.fillRect(318, 156, 154, 18);
+      const texture = new THREE.CanvasTexture(envCanvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      return texture;
     }
 
-    function lerp(a, b, t) {
-      return a + (b - a) * t;
+    function createChromeEnvironment() {
+      const envCanvas = document.createElement('canvas');
+      envCanvas.width = 512;
+      envCanvas.height = 256;
+      const ctx = envCanvas.getContext('2d');
+      const sky = ctx.createLinearGradient(0, 0, 0, envCanvas.height);
+      sky.addColorStop(0, '#ffffff');
+      sky.addColorStop(0.32, '#f4f7ff');
+      sky.addColorStop(0.68, '#dbe5f7');
+      sky.addColorStop(1, '#ffffff');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, envCanvas.width, envCanvas.height);
+
+      const strip = ctx.createLinearGradient(0, 0, envCanvas.width, 0);
+      strip.addColorStop(0, 'rgba(255, 255, 255, 0.92)');
+      strip.addColorStop(0.48, 'rgba(180, 196, 224, 0.42)');
+      strip.addColorStop(1, 'rgba(255, 255, 255, 0.88)');
+      ctx.fillStyle = strip;
+      ctx.fillRect(0, 36, envCanvas.width, 20);
+      ctx.fillRect(0, 186, envCanvas.width, 18);
+      ctx.fillStyle = 'rgba(254, 229, 0, 0.28)';
+      ctx.fillRect(48, 116, 184, 22);
+      ctx.fillStyle = 'rgba(10, 132, 255, 0.18)';
+      ctx.fillRect(286, 132, 168, 18);
+
+      const texture = new THREE.CanvasTexture(envCanvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      return texture;
     }
 
-    function format(value) {
-      return Number(value).toFixed(3);
+    const studioEnvironment = createStudioEnvironment();
+    const chromeEnvironment = createChromeEnvironment();
+    const chromeReflectionTarget = new THREE.WebGLCubeRenderTarget(256, {
+      colorSpace: THREE.SRGBColorSpace,
+      generateMipmaps: true,
+      minFilter: THREE.LinearMipmapLinearFilter
+    });
+    const chromeCubeCamera = new THREE.CubeCamera(0.1, 80, chromeReflectionTarget);
+    const chromeReflectionBackground = new THREE.Color('#f7f9ff');
+    scene.add(chromeCubeCamera);
+    scene.environment = studioEnvironment;
+
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+      color: state.objectColor,
+      transparent: true,
+      opacity: state.opacity,
+      transmission: 0.65,
+      roughness: 0.18,
+      metalness: 0,
+      thickness: 0.6,
+      ior: 1.46,
+      reflectivity: 0.65,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.08,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    glassMaterial.userData.uniforms = {
+      panelBaseColor: { value: new THREE.Color(state.objectColor) },
+      panelGradientColor: { value: new THREE.Color(state.panelGradientColor) },
+      panelGradientAmount: { value: state.panelGradientAmount },
+      panelGradientDirection: { value: 2 },
+      toneMapEnabled: { value: state.toneMap ? 1 : 0 },
+      toneShadowColor: { value: new THREE.Color(state.toneShadowColor) },
+      toneMidColor: { value: new THREE.Color(state.toneMidColor) },
+      toneHighlightColor: { value: new THREE.Color(state.toneHighlightColor) },
+      toneShadowLift: { value: state.toneShadowLift },
+      toneMapAmount: { value: state.toneMapAmount },
+      toneHighlightStrength: { value: state.toneHighlightStrength },
+      chromeMode: { value: 0 },
+      chromeReflectColor: { value: new THREE.Color('#ffffff') }
+    };
+
+    glassMaterial.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, glassMaterial.userData.uniforms);
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `#include <common>
+        varying vec3 vPanelLocal;`
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+        vPanelLocal = position.xyz;`
+      );
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <common>',
+        `#include <common>
+        varying vec3 vPanelLocal;
+        uniform vec3 panelBaseColor;
+        uniform vec3 panelGradientColor;
+        uniform float panelGradientAmount;
+        uniform float panelGradientDirection;
+        uniform float toneMapEnabled;
+        uniform vec3 toneShadowColor;
+        uniform vec3 toneMidColor;
+        uniform vec3 toneHighlightColor;
+        uniform float toneShadowLift;
+        uniform float toneMapAmount;
+        uniform float toneHighlightStrength;
+        uniform float chromeMode;
+        uniform vec3 chromeReflectColor;`
+      );
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+        float g = vPanelLocal.x;
+        float directionMode = mod(panelGradientDirection, 3.0);
+        if (directionMode > 0.5 && directionMode < 1.5) g = vPanelLocal.y;
+        if (directionMode > 1.5) g = (vPanelLocal.x - vPanelLocal.y) * 0.7071;
+        if (panelGradientDirection > 2.5) g *= -1.0;
+        float gradientMix = smoothstep(-0.7, 0.7, g);
+        diffuseColor.rgb = mix(panelBaseColor, panelGradientColor, gradientMix * panelGradientAmount);`
+      );
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <opaque_fragment>',
+        `if (chromeMode > 0.5) {
+          vec3 chromeOriginal = outgoingLight;
+          vec3 viewDirChrome = normalize(vViewPosition);
+          float chromeRim = pow(1.0 - abs(dot(normalize(normal), viewDirChrome)), 1.7);
+          float sweepA = sin((vPanelLocal.x * 4.4 - vPanelLocal.y * 1.8) * 3.14159265);
+          float sweepB = sin((vPanelLocal.x * -2.2 + vPanelLocal.y * 3.2) * 3.14159265 + 1.25);
+          float wideReflection = smoothstep(0.36, 0.92, sweepA * 0.5 + 0.5);
+          float narrowReflection = smoothstep(0.86, 0.99, sweepB * 0.5 + 0.5);
+          vec3 chromeTint = mix(panelBaseColor, panelGradientColor, 0.42);
+          vec3 softPanelReflection = mix(chromeTint, chromeReflectColor, 0.58);
+          outgoingLight = mix(outgoingLight, chromeOriginal * 0.74 + chromeTint * 0.34, wideReflection * 0.34);
+          outgoingLight += softPanelReflection * narrowReflection * 0.32;
+          outgoingLight += chromeReflectColor * chromeRim * 0.24;
+        }
+        if (toneMapEnabled > 0.5) {
+          vec3 originalLight = outgoingLight;
+          vec3 specularLight = reflectedLight.directSpecular + reflectedLight.indirectSpecular;
+          float toneLuma = dot(originalLight, vec3(0.2126, 0.7152, 0.0722));
+          float toneT = clamp(toneLuma + toneShadowLift, 0.0, 1.0);
+          vec3 mappedTone = mix(toneShadowColor, toneMidColor, smoothstep(0.0, 0.62, toneT));
+          mappedTone = mix(mappedTone, toneHighlightColor, smoothstep(0.58, 1.0, toneT) * toneHighlightStrength);
+          float glossLight = smoothstep(0.0, 1.0, toneLuma);
+          vec3 viewDir = normalize(vViewPosition);
+          float rim = pow(1.0 - abs(dot(normalize(normal), viewDir)), 2.2);
+          vec3 textureTone = mappedTone * mix(0.72, 1.16, glossLight);
+          textureTone += originalLight * 0.32;
+          textureTone += specularLight * mix(vec3(1.0), toneHighlightColor, 0.72) * (0.85 + toneHighlightStrength);
+          textureTone += toneHighlightColor * rim * toneHighlightStrength * 0.18;
+          outgoingLight = mix(originalLight, textureTone, toneMapAmount);
+        }
+        #include <opaque_fragment>`
+      );
+    };
+
+    const fillMaterial = new THREE.MeshBasicMaterial({
+      color: state.objectColor,
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+
+    let items = [];
+    let sharedGeometry = null;
+    let cameraTween = null;
+    const clock = new THREE.Clock();
+
+    const canvasSizeOptions = ['1:1 Square', '16:9 Widescreen', '9:16 Social story', '4:3 Classic', '3:4 Traditional', '3:2 Standard', '2:3 Portrait', '1:2 Vertical', '2:1 Horizontal', '4:5 Social post', 'Custom'];
+    const inspectorOrder = ['Layout', 'Shape', 'Material', 'Camera', 'Motion'];
+    const inspectorTabLabels = {
+      Material: 'Look'
+    };
+    const optionLabels = {
+      line: 'Line',
+      ring: 'Ring',
+      coil: 'Coil',
+      spiral: 'Spiral',
+      disc: 'Disc',
+      roundedRect: 'Rounded plate',
+      tangent: 'Follow path',
+      'same direction': 'Same direction',
+      inward: 'Face inward',
+      outward: 'Face outward',
+      custom: 'Custom',
+      'front 0deg': 'Front',
+      'side 90deg': 'Side',
+      'back 180deg': 'Back',
+      'flat top 90deg': 'Flat',
+      'roll 90deg': 'Rolled',
+      'layout plane': 'Pattern axis',
+      'world axis': 'Scene axis',
+      sync: 'Together',
+      cascade: 'Cascade',
+      front: 'Front',
+      top: 'Top',
+      side: 'Side',
+      isometric: 'Isometric',
+      perspective: 'Perspective',
+      horizontal: 'Left to right',
+      'horizontal reverse': 'Right to left',
+      vertical: 'Bottom to top',
+      'vertical reverse': 'Top to bottom',
+      diagonal: 'Diagonal',
+      'diagonal reverse': 'Reverse diagonal',
+      flow: 'Flow',
+      lift: 'Lift',
+      'solid gloss': 'Solid gloss',
+      glass: 'Glass',
+      chrome: 'Chrome'
+    };
+    const advancedControls = new Set([
+      'sizeVariation', 'tiltVariation', 'layoutStartAngle', 'lineSpacingX', 'lineSpacingZ',
+      'lineWaveAmount', 'lineWaveDepth', 'lineWaveFrequency', 'lineWaveStyle', 'lineWaveSpeed', 'axisRotX', 'axisRotY', 'axisRotZ',
+      'spiralTurns', 'spiralRise', 'spiralSpread', 'coilTurns', 'coilRadius', 'coilGap', 'coilFlowSpeed',
+      'Randomize roll',
+      'cornerRadius', 'discInflate', 'shapeRotX', 'shapeRotY', 'shapeRotZ',
+      'panelGradientDirection', 'toneMap', 'toneShadowColor', 'toneMidColor', 'toneHighlightColor',
+      'toneShadowLift', 'toneMapAmount', 'toneHighlightStrength',
+      'cameraYaw', 'cameraPitch', 'cameraRoll', 'focusDistance', 'focusAmount',
+      'groupRotateMode', 'selfSpinTiming', 'selfSpinOffset',
+      'videoBitrate', 'videoFps',
+      'Color grading', 'Custom view'
+    ]);
+
+    const specs = [
+      { title: 'Layout', controls: [
+        { key: 'layout', label: 'Pattern', type: 'select', options: ['line', 'ring', 'coil', 'spiral'] },
+        { key: 'count', label: 'Count', type: 'range', min: 1, max: 256, step: 1, rebuild: true },
+        { key: 'spacing', label: 'Gap', type: 'range', min: 0.12, max: 1.8, step: 0.005 },
+        { key: 'sizeVariation', label: 'Size variance', type: 'range', min: 0, max: 0.9, step: 0.01 },
+        { key: 'tiltVariation', label: 'Tilt variance', type: 'range', min: 0, max: 75, step: 1 },
+        { label: 'Randomize roll', type: 'button', action: rollRandomVariation },
+        { key: 'layoutFacing', label: 'Direction', type: 'select', options: ['tangent', 'same direction', 'inward', 'outward'] },
+        { key: 'layoutStartAngle', label: 'Start', type: 'range', min: -180, max: 180, step: 1, showWhen: () => state.layout === 'ring' || state.layout === 'coil' || state.layout === 'spiral' },
+        { key: 'coilTurns', label: 'Coil turns', type: 'range', min: 0.25, max: 16, step: 0.01, showWhen: () => state.layout === 'coil' },
+        { key: 'spiralTurns', label: 'Turns', type: 'range', min: 0.25, max: 8, step: 0.01, showWhen: () => state.layout === 'spiral' },
+        { key: 'coilRadius', label: 'Coil radius', type: 'range', min: 0.1, max: 4, step: 0.01, showWhen: () => state.layout === 'coil' },
+        { key: 'coilGap', label: 'Coil gap', type: 'range', min: 0.05, max: 8, step: 0.01, showWhen: () => state.layout === 'coil' },
+        { key: 'spiralSpread', label: 'Spread', type: 'range', min: 0.2, max: 2.5, step: 0.01, showWhen: () => state.layout === 'spiral' },
+        { key: 'lineSpacingX', label: 'Gap X', type: 'range', min: 0, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
+        { key: 'lineSpacingZ', label: 'Gap Z', type: 'range', min: -2.5, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
+        { key: 'lineWaveAmount', label: 'Wave height', type: 'range', min: 0, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' },
+        { key: 'lineWaveDepth', label: 'Wave depth', type: 'range', min: 0, max: 2.5, step: 0.01, showWhen: () => state.layout === 'line' && state.lineWaveStyle === 'flow' },
+        { key: 'lineWaveFrequency', label: 'Wave count', type: 'range', min: 0.25, max: 4, step: 0.01, showWhen: () => state.layout === 'line' && state.lineWaveStyle === 'flow' },
+        { key: 'axisRotX', label: 'Rotate X', type: 'range', min: -90, max: 90, step: 1 },
+        { key: 'axisRotY', label: 'Rotate Y', type: 'range', min: -180, max: 180, step: 1 },
+        { key: 'axisRotZ', label: 'Rotate Z', type: 'range', min: -180, max: 180, step: 1 }
+      ]},
+      { title: 'Shape', controls: [
+        { key: 'shape', label: 'Form', type: 'select', options: ['disc', 'roundedRect'], rebuild: true },
+        { key: 'panelSize', label: 'Size', type: 'range', min: 0.45, max: 2.1, step: 0.01, rebuild: true },
+        { key: 'panelAspect', label: 'Aspect', type: 'range', min: 0.35, max: 2.4, step: 0.01, rebuild: true },
+        { key: 'cornerRadius', label: 'Corners', type: 'range', min: 0.02, max: 0.5, step: 0.01, rebuild: true, showWhen: () => state.shape === 'roundedRect' },
+        { key: 'discInflate', label: 'Bulge', type: 'range', min: 0, max: 1.2, step: 0.01, rebuild: true, showWhen: () => state.shape === 'disc' },
+        { key: 'thickness', label: 'Thickness', type: 'range', min: 0.02, max: 0.28, step: 0.005, rebuild: true },
+        { key: 'rotationPreset', label: 'Pose', type: 'select', options: ['custom', 'front 0deg', 'side 90deg', 'back 180deg', 'flat top 90deg', 'roll 90deg'], rotationPreset: true },
+        { key: 'shapeRotX', label: 'Tilt X', type: 'range', min: -90, max: 90, step: 1 },
+        { key: 'shapeRotY', label: 'Turn Y', type: 'range', min: -180, max: 180, step: 1 },
+        { key: 'shapeRotZ', label: 'Roll Z', type: 'range', min: -180, max: 180, step: 1 }
+      ]},
+      { title: 'Motion', side: 'center', controls: [
+        { key: 'motion', label: 'Animate', type: 'checkbox' },
+        { key: 'lineWaveStyle', label: 'Wave style', type: 'select', options: ['flow', 'lift'], showWhen: () => state.motion && state.layout === 'line' },
+        { key: 'lineWaveSpeed', label: 'Wave speed', type: 'range', min: -3, max: 3, step: 0.01, showWhen: () => state.motion && state.layout === 'line' },
+        { key: 'coilFlowSpeed', label: 'Coil flow', type: 'range', min: -1.5, max: 1.5, step: 0.01, showWhen: () => state.motion && state.layout === 'coil' },
+        { key: 'groupRotate', label: 'Orbit', type: 'checkbox', showWhen: () => state.motion && state.layout !== 'line' && state.layout !== 'coil' },
+        { key: 'groupRotateMode', label: 'Orbit path', type: 'select', options: ['layout plane', 'world axis'], showWhen: () => state.motion && state.groupRotate && state.layout !== 'line' && state.layout !== 'coil' },
+        { key: 'groupSpeed', label: 'Orbit speed', type: 'range', min: -1.2, max: 1.2, step: 0.01, showWhen: () => state.motion && state.groupRotate && state.layout !== 'line' && state.layout !== 'coil' },
+        { key: 'selfSpin', label: 'Spin', type: 'checkbox', showWhen: () => state.motion },
+        { key: 'selfSpinTiming', label: 'Spin style', type: 'select', options: ['sync', 'cascade'], showWhen: () => state.motion && state.selfSpin },
+        { key: 'selfSpeed', label: 'Spin speed', type: 'range', min: -2.5, max: 2.5, step: 0.01, showWhen: () => state.motion && state.selfSpin },
+        { key: 'selfSpinOffset', label: 'Cascade gap', type: 'range', min: 0, max: 0.6, step: 0.01, showWhen: () => state.motion && state.selfSpin && state.selfSpinTiming === 'cascade' }
+      ]},
+      { title: 'Camera', side: 'right', controls: [
+        { key: 'cameraPreset', label: 'View', type: 'select', options: ['front', 'top', 'side', 'isometric', 'perspective', 'custom'], camera: true },
+        { key: 'zoom', label: 'Zoom', type: 'range', min: 0.45, max: 2.2, step: 0.01, camera: true },
+        { key: 'perspectiveStrength', label: 'Drama', type: 'range', min: 0, max: 1, step: 0.01, camera: true },
+        { key: 'focusBlur', label: 'Focus blur', type: 'checkbox' },
+        { key: 'focusDistance', label: 'Focus distance', type: 'range', min: 1, max: 18, step: 0.1, showWhen: () => state.focusBlur },
+        { key: 'focusAmount', label: 'Blur amount', type: 'range', min: 0, max: 1, step: 0.01, showWhen: () => state.focusBlur },
+        { type: 'subhead', label: 'Custom view', showWhen: () => state.cameraPreset === 'custom' },
+        { key: 'cameraYaw', label: 'Pan', type: 'range', min: -180, max: 180, step: 1, camera: true, cameraManual: true, showWhen: () => state.cameraPreset === 'custom' },
+        { key: 'cameraPitch', label: 'Pitch', type: 'range', min: -85, max: 85, step: 1, camera: true, cameraManual: true, showWhen: () => state.cameraPreset === 'custom' },
+        { key: 'cameraRoll', label: 'Horizon', type: 'range', min: -180, max: 180, step: 1, camera: true, cameraManual: true, showWhen: () => state.cameraPreset === 'custom' }
+      ]},
+      { title: 'Material', side: 'right', controls: [
+        { type: 'subhead', label: 'Color' },
+        { key: 'backgroundColor', label: 'Backdrop', type: 'color' },
+        { key: 'objectColor', label: 'Base color', type: 'color' },
+        { key: 'panelGradientColor', label: 'Blend color', type: 'color' },
+        { key: 'panelGradientAmount', label: 'Blend', type: 'range', min: 0, max: 1, step: 0.01 },
+        { key: 'panelGradientDirection', label: 'Blend direction', type: 'select', options: ['horizontal', 'horizontal reverse', 'vertical', 'vertical reverse', 'diagonal', 'diagonal reverse'] },
+        { type: 'subhead', label: 'Surface' },
+        { key: 'materialStyle', label: 'Finish', type: 'select', options: ['solid gloss', 'glass', 'chrome'] },
+        { key: 'gloss', label: 'Gloss', type: 'range', min: 0, max: 1, step: 0.01 },
+        { key: 'opacity', label: 'Opacity', type: 'range', min: 0.08, max: 1, step: 0.01, showWhen: () => state.materialStyle === 'glass' },
+        { key: 'glassSolidify', label: 'Density', type: 'range', min: 0, max: 1, step: 0.01, showWhen: () => state.materialStyle === 'glass' },
+        { key: 'glassBacking', label: 'Light fill', type: 'range', min: 0, max: 1, step: 0.01, showWhen: () => state.materialStyle === 'glass' },
+        { type: 'subhead', label: 'Color grading', showWhen: () => state.materialStyle === 'solid gloss' },
+        { key: 'toneMap', label: 'Grading', type: 'checkbox', showWhen: () => state.materialStyle === 'solid gloss' },
+        { key: 'toneShadowColor', label: 'Shadow', type: 'color', showWhen: () => state.toneMap && state.materialStyle === 'solid gloss' },
+        { key: 'toneMidColor', label: 'Midtone', type: 'color', showWhen: () => state.toneMap && state.materialStyle === 'solid gloss' },
+        { key: 'toneHighlightColor', label: 'Highlight', type: 'color', showWhen: () => state.toneMap && state.materialStyle === 'solid gloss' },
+        { key: 'toneShadowLift', label: 'Shadow lift', type: 'range', min: 0, max: 0.8, step: 0.01, showWhen: () => state.toneMap && state.materialStyle === 'solid gloss' },
+        { key: 'toneMapAmount', label: 'Grade amount', type: 'range', min: 0, max: 1, step: 0.01, showWhen: () => state.toneMap && state.materialStyle === 'solid gloss' },
+        { key: 'toneHighlightStrength', label: 'Highlight boost', type: 'range', min: 0, max: 1, step: 0.01, showWhen: () => state.toneMap && state.materialStyle === 'solid gloss' }
+      ]},
+      { title: 'Export', side: 'center', controls: [
+        { type: 'subhead', label: 'Settings', exportGroup: 'settings' },
+        { label: 'Save settings', type: 'button', action: exportParameters },
+        { label: 'Load settings', type: 'button', action: importParameters },
+        { type: 'subhead', label: 'Image', exportGroup: 'image' },
+        { key: 'exportScale', label: 'Scale', type: 'select', options: ['1x', '2x', '3x', '4x'] },
+        { label: 'JPG', type: 'button', action: exportJPG },
+        { label: 'Transparent PNG', type: 'button', action: exportPNGObject },
+        { type: 'subhead', label: 'Video', exportGroup: 'video' },
+        { key: 'videoBitrate', label: 'Bitrate', type: 'range', min: 4, max: 40, step: 1 },
+        { key: 'videoFps', label: 'Frame rate', type: 'range', min: 24, max: 60, step: 1 },
+        { key: 'videoDuration', label: 'Duration', type: 'range', min: 5, max: 30, step: 1 },
+        { label: 'Record video', type: 'button', action: recordVideo, recordButton: true }
+      ]}
+    ];
+
+    const inputs = new Map();
+    const controlEntries = [];
+    let recordButton = null;
+    let recordingTimer = null;
+    const canvasPresets = {
+      '1:1 Square': [1080, 1080],
+      '16:9 Widescreen': [1920, 1080],
+      '9:16 Social story': [1080, 1920],
+      '4:3 Classic': [1600, 1200],
+      '3:4 Traditional': [1200, 1600],
+      '3:2 Standard': [1800, 1200],
+      '2:3 Portrait': [1200, 1800],
+      '1:2 Vertical': [1080, 2160],
+      '2:1 Horizontal': [2160, 1080],
+      '4:5 Social post': [1080, 1350]
+    };
+    const rotationPresets = {
+      'front 0deg': [0, 0, 0],
+      'side 90deg': [0, 90, 0],
+      'back 180deg': [0, 180, 0],
+      'flat top 90deg': [90, 0, 0],
+      'roll 90deg': [0, 0, 90]
+    };
+    const cameraAngles = {
+      front: [0, 0, 0],
+      top: [0, 85, 0],
+      side: [90, 0, 0],
+      isometric: [45, 35, 0],
+      perspective: [37, 22, 0]
+    };
+
+    const topSpecs = [
+      { key: 'canvasSize', label: 'Ratio', type: 'select', options: canvasSizeOptions, canvas: true },
+      { key: 'canvasWidth', label: 'Width', type: 'number', min: 320, max: 4096, step: 1, canvas: true },
+      { key: 'canvasHeight', label: 'Height', type: 'number', min: 320, max: 4096, step: 1, canvas: true }
+    ];
+    const parameterFileInput = document.createElement('input');
+    parameterFileInput.type = 'file';
+    parameterFileInput.accept = 'application/json,.json';
+    parameterFileInput.className = 'is-hidden';
+    document.body.append(parameterFileInput);
+
+    function optionLabel(option) {
+      return optionLabels[option] || option;
+    }
+
+    function buildControl(control, box) {
+      const registerControl = (element, sectionEntry = null) => {
+        const entry = { control, element, sectionEntry };
+        if (sectionEntry) sectionEntry.controls.push(entry);
+        controlEntries.push(entry);
+      };
+
+      if (control.type === 'subhead') {
+        const subhead = document.createElement('div');
+        subhead.className = 'subhead';
+        subhead.textContent = control.label;
+        box.append(subhead);
+        registerControl(subhead);
+        return;
+      }
+
+      if (control.type === 'select') {
+        const row = document.createElement('div');
+        row.className = 'ui-row select-row';
+        const label = document.createElement('label');
+        label.textContent = control.label;
+        const input = document.createElement('select');
+        control.options.forEach((option) => {
+          const item = document.createElement('option');
+          item.value = option;
+          item.textContent = optionLabel(option);
+          input.append(item);
+        });
+        input.value = state[control.key];
+        input.addEventListener('input', () => {
+          state[control.key] = input.value;
+          onChange(control);
+        });
+        row.append(label, input);
+        box.append(row);
+        inputs.set(control.key, { input, control });
+        registerControl(row);
+        return;
+      }
+
+      if (control.type === 'number') {
+        const row = document.createElement('div');
+        row.className = 'ui-row number-row';
+        const label = document.createElement('label');
+        label.textContent = control.label;
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = control.min;
+        input.max = control.max;
+        input.step = control.step;
+        input.value = state[control.key];
+        const setNumber = () => {
+          const min = Number(control.min);
+          const max = Number(control.max);
+          const value = Number(input.value);
+          if (!Number.isFinite(value)) return;
+          const clamped = Math.min(max, Math.max(min, Math.round(value)));
+          state[control.key] = clamped;
+          input.value = clamped;
+          onChange(control);
+        };
+        input.addEventListener('change', setNumber);
+        input.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') input.blur();
+        });
+        row.append(label, input);
+        box.append(row);
+        inputs.set(control.key, { input, control });
+        registerControl(row);
+        return;
+      }
+
+      if (control.type === 'checkbox') {
+        const row = document.createElement('div');
+        row.className = 'ui-row toggle-row check-row';
+        const label = document.createElement('label');
+        label.textContent = control.label;
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = state[control.key];
+        input.addEventListener('input', () => {
+          state[control.key] = input.checked;
+          onChange(control);
+        });
+        row.append(label, input);
+        box.append(row);
+        inputs.set(control.key, { input, control });
+        registerControl(row);
+      }
+    }
+
+    function buildUI() {
+      const canvasBox = document.createElement('section');
+      canvasBox.className = 'section';
+      const canvasTitle = document.createElement('h2');
+      canvasTitle.textContent = 'Canvas';
+      canvasBox.append(canvasTitle);
+      topSpecs.forEach((control) => buildControl(control, canvasBox));
+      canvasUi.append(canvasBox);
+
+      const inspectorPanels = new Map();
+      inspectorOrder.forEach((name, index) => {
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.className = `inspector-tab${index === 0 ? ' is-active' : ''}`;
+        tab.textContent = inspectorTabLabels[name] || name;
+        tab.addEventListener('click', () => {
+          inspectorTabs.querySelectorAll('.inspector-tab').forEach((item) => item.classList.toggle('is-active', item === tab));
+          rightUi.querySelectorAll('.inspector-panel').forEach((panel) => panel.classList.toggle('is-active', panel.dataset.tab === name));
+        });
+        inspectorTabs.append(tab);
+
+        const panel = document.createElement('div');
+        panel.className = `inspector-panel${index === 0 ? ' is-active' : ''}`;
+        panel.dataset.tab = name;
+        rightUi.append(panel);
+        inspectorPanels.set(name, panel);
+      });
+
+      specs.forEach((section) => {
+        const isExport = section.title === 'Export';
+        const targetUi = isExport ? exportUi : inspectorPanels.get(section.title) || rightUi;
+        const box = document.createElement('section');
+        box.className = 'section';
+        const sectionEntry = { section, box, controls: [] };
+        const title = document.createElement('h2');
+        title.textContent = inspectorTabLabels[section.title] || section.title;
+        box.append(title);
+        const basicGroup = document.createElement('div');
+        basicGroup.className = 'control-group';
+        const advancedGroup = document.createElement('div');
+        advancedGroup.className = 'advanced-group';
+        const advancedTitle = document.createElement('div');
+        advancedTitle.className = 'control-group-title';
+        advancedTitle.textContent = 'Fine tune';
+        advancedGroup.append(advancedTitle);
+        if (!isExport) {
+          box.append(basicGroup, advancedGroup);
+        }
+
+        section.controls.forEach((control) => {
+          const registerControl = (element) => {
+            const entry = { control, element, sectionEntry };
+            sectionEntry.controls.push(entry);
+            controlEntries.push(entry);
+          };
+          const controlParent = !isExport && advancedControls.has(control.key || control.label) ? advancedGroup : !isExport ? basicGroup : box;
+
+          if (control.type === 'subhead') {
+            const subhead = document.createElement('div');
+            subhead.className = isExport ? 'export-group-title' : 'subhead section-header';
+            subhead.textContent = control.label;
+            if (isExport) {
+              const group = document.createElement('div');
+              group.className = 'export-group';
+              group.dataset.exportGroup = control.exportGroup || control.label.toLowerCase();
+              group.append(subhead);
+              box.append(group);
+              box.dataset.activeExportGroup = group.dataset.exportGroup;
+            } else {
+              controlParent.append(subhead);
+            }
+            registerControl(subhead);
+            return;
+          }
+
+          const exportGroup = isExport ? box.querySelector(`[data-export-group="${box.dataset.activeExportGroup || ''}"]`) || box : null;
+          const appendTarget = exportGroup || controlParent;
+          const appendElement = (element) => {
+            if (isExport && control.type === 'button') {
+              let actions = appendTarget.querySelector(':scope > .export-actions');
+              if (!actions) {
+                actions = document.createElement('div');
+                actions.className = 'export-actions';
+                appendTarget.append(actions);
+              }
+              actions.append(element);
+              return;
+            }
+            appendTarget.append(element);
+          };
+
+          if (control.type === 'button') {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'ui-button';
+            button.textContent = control.label;
+            button.addEventListener('click', control.action);
+            if (control.recordButton) button.classList.add('primary-action');
+            appendElement(button);
+            if (control.recordButton) recordButton = button;
+            registerControl(button);
+            return;
+          }
+
+          if (control.type === 'select') {
+            const row = document.createElement('div');
+            row.className = 'ui-row select-row';
+            const label = document.createElement('label');
+            label.textContent = control.label;
+            const input = document.createElement('select');
+            control.options.forEach((option) => {
+              const item = document.createElement('option');
+              item.value = option;
+              item.textContent = optionLabel(option);
+              input.append(item);
+            });
+            input.value = state[control.key];
+            input.addEventListener('input', () => {
+              state[control.key] = input.value;
+              onChange(control);
+            });
+            row.append(label, input);
+            appendElement(row);
+            inputs.set(control.key, { input, control });
+            registerControl(row);
+            return;
+          }
+
+          if (control.type === 'color') {
+            const row = document.createElement('div');
+            row.className = 'ui-row color-row';
+            const label = document.createElement('label');
+            label.textContent = control.label;
+            const inputsWrap = document.createElement('div');
+            inputsWrap.className = 'color-inputs';
+            const hexInput = document.createElement('input');
+            hexInput.type = 'text';
+            hexInput.value = state[control.key].toUpperCase();
+            hexInput.placeholder = '#RRGGBB';
+            const picker = document.createElement('button');
+            picker.type = 'button';
+            picker.className = 'color-swatch';
+            picker.setAttribute('aria-label', `Open ${control.label} picker`);
+            const swatch = document.createElement('span');
+            swatch.style.background = state[control.key];
+            picker.append(swatch);
+
+            const setColor = (value) => {
+              const normalized = normalizeHex(value);
+              if (!normalized) return;
+              state[control.key] = normalized;
+              hexInput.value = normalized.toUpperCase();
+              swatch.style.background = normalized;
+              onChange(control);
+            };
+
+            hexInput.addEventListener('change', () => setColor(hexInput.value));
+            hexInput.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter') hexInput.blur();
+            });
+            picker.addEventListener('click', () => openColorPicker(control.key, control));
+            inputsWrap.append(hexInput, picker);
+            row.append(label, inputsWrap);
+            appendElement(row);
+            inputs.set(control.key, { input: hexInput, picker, swatch, control });
+            registerControl(row);
+            return;
+          }
+
+          if (control.type === 'checkbox') {
+            const row = document.createElement('div');
+            row.className = 'ui-row toggle-row check-row';
+            const label = document.createElement('label');
+            label.textContent = control.label;
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = state[control.key];
+            input.addEventListener('input', () => {
+              state[control.key] = input.checked;
+              onChange(control);
+            });
+            row.append(label, input);
+            appendElement(row);
+            inputs.set(control.key, { input, control });
+            registerControl(row);
+            return;
+          }
+
+          const row = document.createElement('div');
+          row.className = 'ui-row slider-row control';
+          const label = document.createElement('label');
+          label.textContent = control.label;
+          const value = document.createElement('input');
+          value.type = 'number';
+          value.className = 'value';
+          value.min = control.min;
+          value.max = control.max;
+          value.step = control.step;
+          value.value = formatValue(state[control.key], control.step);
+          const input = document.createElement('input');
+          input.type = 'range';
+          input.min = control.min;
+          input.max = control.max;
+          input.step = control.step;
+          input.value = state[control.key];
+          const setNumericValue = (nextValue) => {
+            const min = Number(control.min);
+            const max = Number(control.max);
+            const valueNumber = Number(nextValue);
+            if (!Number.isFinite(valueNumber)) return;
+            const clamped = Math.min(max, Math.max(min, valueNumber));
+            state[control.key] = clamped;
+            input.value = clamped;
+            value.value = formatValue(clamped, control.step);
+            onChange(control);
+          };
+          input.addEventListener('input', () => {
+            setNumericValue(input.value);
+          });
+          value.addEventListener('change', () => setNumericValue(value.value));
+          value.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') value.blur();
+          });
+          row.append(label, value, input);
+          appendElement(row);
+          inputs.set(control.key, { input, value, control });
+          registerControl(row);
+        });
+
+        if (!isExport) {
+          const advancedHasContent = advancedGroup.children.length > 1;
+          advancedGroup.classList.toggle('is-hidden', !advancedHasContent);
+        }
+
+        targetUi.append(box);
+        controlEntries.push(sectionEntry);
+      });
+    }
+
+    function applyTheme() {
+      document.body.classList.toggle('light', state.lightUI);
+      document.body.classList.toggle('dark', !state.lightUI);
+      themeToggle.textContent = state.lightUI ? 'Dark' : 'Light';
+      themeToggle.setAttribute('aria-pressed', String(state.lightUI));
+    }
+
+    function refreshConditionalUI() {
+      controlEntries.forEach((entry) => {
+        if (entry.section && entry.box) {
+          const sectionVisible = entry.section.showWhen ? entry.section.showWhen() : true;
+          const hasVisibleControl = entry.controls.some((controlEntry) => !controlEntry.element.classList.contains('is-hidden'));
+          entry.box.classList.toggle('is-hidden', !sectionVisible || !hasVisibleControl);
+          return;
+        }
+        const visible = entry.control.showWhen ? entry.control.showWhen() : true;
+        entry.element.classList.toggle('is-hidden', !visible);
+      });
+    }
+
+    function formatValue(value, step = 0.01) {
+      if (Number.isInteger(value)) return String(value);
+      const stepText = String(step);
+      const decimals = stepText.includes('.') ? stepText.split('.')[1].length : 0;
+      return Number(value).toFixed(Math.min(4, Math.max(2, decimals)));
     }
 
     function normalizeHex(value) {
-      const clean = String(value).trim().replace(/^#/, "");
-      if (/^[0-9a-fA-F]{3}$/.test(clean)) {
-        return `#${clean.split("").map((char) => char + char).join("").toUpperCase()}`;
-      }
-      if (/^[0-9a-fA-F]{6}$/.test(clean)) {
-        return `#${clean.toUpperCase()}`;
+      const raw = String(value).trim();
+      const withHash = raw.startsWith('#') ? raw : `#${raw}`;
+      if (/^#[0-9a-fA-F]{6}$/.test(withHash)) return withHash.toLowerCase();
+      if (/^#[0-9a-fA-F]{3}$/.test(withHash)) {
+        return `#${withHash[1]}${withHash[1]}${withHash[2]}${withHash[2]}${withHash[3]}${withHash[3]}`.toLowerCase();
       }
       return null;
     }
 
     function hexToRgb(hex) {
-      const normalized = normalizeHex(hex) || "#000000";
-      const clean = normalized.replace("#", "");
-      const value = Number.parseInt(clean, 16);
-      return [
-        ((value >> 16) & 255) / 255,
-        ((value >> 8) & 255) / 255,
-        (value & 255) / 255
-      ];
-    }
-
-    function componentToHex(value) {
-      return Math.round(clamp(value, 0, 1) * 255).toString(16).padStart(2, "0");
-    }
-
-    function rgbToHex(rgb) {
-      return `#${componentToHex(rgb[0])}${componentToHex(rgb[1])}${componentToHex(rgb[2])}`.toUpperCase();
-    }
-
-    function paletteStrip(palette) {
-      const a = rgbToHex(palette.colorA);
-      const b = rgbToHex(palette.colorB);
-      const edge = rgbToHex(palette.boundary);
-      return `linear-gradient(90deg, ${a} 0 48%, ${edge} 48% 52%, ${b} 52% 100%)`;
-    }
-
-    function updatePaletteColor(slot, hex) {
-      const normalized = normalizeHex(hex);
-      if (!normalized) return false;
-      const rgb = hexToRgb(normalized);
-      const palette = PALETTES[state.paletteIndex];
-      if (slot === "colorA") state.colors.colorA = rgb;
-      if (slot === "colorB") state.colors.colorB = rgb;
-      if (slot === "boundary") state.colors.boundary = rgb;
-
-      if (palette) {
-        palette[slot] = rgb.slice();
-        if (slot === "colorA") palette.hexA = normalized;
-        if (slot === "colorB") palette.hexB = normalized;
-        if (slot === "boundary") palette.hexEdge = normalized;
-        palette.strip = paletteStrip(palette);
-      }
-      return true;
-    }
-
-    function mulberry32(seed) {
-      let a = seed >>> 0;
-      return function random() {
-        a += 0x6D2B79F5;
-        let t = a;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-    }
-
-    function getSelectedRatio() {
-      return ASPECT_RATIOS.find((ratio) => ratio.value === state.canvas.ratio) || ASPECT_RATIOS[1];
-    }
-
-    function getCanvasSize() {
+      const normalized = normalizeHex(hex) || '#000000';
       return {
-        width: clamp(Math.round(state.canvas.width), 64, 8192),
-        height: clamp(Math.round(state.canvas.height), 64, 8192)
+        r: parseInt(normalized.slice(1, 3), 16),
+        g: parseInt(normalized.slice(3, 5), 16),
+        b: parseInt(normalized.slice(5, 7), 16)
       };
     }
 
-    function setCanvasFromWidth(width) {
-      const ratio = getSelectedRatio();
-      state.canvas.width = clamp(Math.round(width || 64), 64, 8192);
-      state.canvas.height = clamp(Math.round(state.canvas.width * ratio.h / ratio.w), 64, 8192);
+    function rgbToHex(r, g, b) {
+      const clampByte = (value) => Math.min(255, Math.max(0, Math.round(value)));
+      return `#${[clampByte(r), clampByte(g), clampByte(b)].map((value) => value.toString(16).padStart(2, '0')).join('')}`;
     }
 
-    function setCanvasFromHeight(height) {
-      const ratio = getSelectedRatio();
-      state.canvas.height = clamp(Math.round(height || 64), 64, 8192);
-      state.canvas.width = clamp(Math.round(state.canvas.height * ratio.w / ratio.h), 64, 8192);
+    function rgbToHsv(r, g, b) {
+      const rn = r / 255;
+      const gn = g / 255;
+      const bn = b / 255;
+      const max = Math.max(rn, gn, bn);
+      const min = Math.min(rn, gn, bn);
+      const delta = max - min;
+      let h = 0;
+      if (delta > 0) {
+        if (max === rn) h = ((gn - bn) / delta) % 6;
+        else if (max === gn) h = (bn - rn) / delta + 2;
+        else h = (rn - gn) / delta + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+      }
+      return { h, s: max === 0 ? 0 : delta / max, v: max };
     }
 
-    function downloadBlob(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
+    function hsvToRgb(h, s, v) {
+      const hue = ((h % 360) + 360) % 360;
+      const c = v * s;
+      const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+      const m = v - c;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      if (hue < 60) [r, g, b] = [c, x, 0];
+      else if (hue < 120) [r, g, b] = [x, c, 0];
+      else if (hue < 180) [r, g, b] = [0, c, x];
+      else if (hue < 240) [r, g, b] = [0, x, c];
+      else if (hue < 300) [r, g, b] = [x, 0, c];
+      else [r, g, b] = [c, 0, x];
+      return {
+        r: (r + m) * 255,
+        g: (g + m) * 255,
+        b: (b + m) * 255
+      };
+    }
+
+    function hsvToHex(h, s, v) {
+      const rgb = hsvToRgb(h, s, v);
+      return rgbToHex(rgb.r, rgb.g, rgb.b);
+    }
+
+    function randomSigned(index, salt) {
+      const value = Math.sin((index + 1) * 127.1 + salt * 311.7 + state.randomSeed * 19.37) * 43758.5453;
+      return (value - Math.floor(value)) * 2 - 1;
+    }
+
+    let activeColorKey = null;
+    let activeColorControl = null;
+    let activeColorOriginal = '#ffffff';
+    let activeColor = { h: 0, s: 0, v: 1 };
+
+    function currentPickerHex() {
+      return hsvToHex(activeColor.h, activeColor.s, activeColor.v);
+    }
+
+    function clampPickerPosition(left, top) {
+      const rect = colorPickerModal.getBoundingClientRect();
+      const width = rect.width || 360;
+      const height = rect.height || 420;
+      const margin = 8;
+      return {
+        left: Math.min(window.innerWidth - width - margin, Math.max(margin, left)),
+        top: Math.min(window.innerHeight - height - margin, Math.max(margin, top))
+      };
+    }
+
+    function setPickerPosition(left, top) {
+      const next = clampPickerPosition(left, top);
+      colorPickerModal.style.left = `${next.left}px`;
+      colorPickerModal.style.top = `${next.top}px`;
+      colorPickerModal.style.right = 'auto';
+      colorPickerModal.style.bottom = 'auto';
+    }
+
+    function ensurePickerInView() {
+      const rect = colorPickerModal.getBoundingClientRect();
+      setPickerPosition(rect.left, rect.top);
+    }
+
+    function applyActiveColorLive() {
+      if (!activeColorKey || !activeColorControl) return;
+      const hex = currentPickerHex();
+      state[activeColorKey] = hex;
+      const entry = inputs.get(activeColorKey);
+      if (entry) {
+        entry.input.value = hex.toUpperCase();
+        if (entry.swatch) entry.swatch.style.background = hex;
+      }
+      onChange(activeColorControl);
+    }
+
+    function setPickerFromHex(hex) {
+      const rgb = hexToRgb(hex);
+      activeColor = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      updateColorPickerUI();
+    }
+
+    function updateColorPickerUI() {
+      const rgb = hsvToRgb(activeColor.h, activeColor.s, activeColor.v);
+      const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+      svPlane.style.backgroundColor = hsvToHex(activeColor.h, 1, 1);
+      svHandle.style.left = `${activeColor.s * 100}%`;
+      svHandle.style.top = `${(1 - activeColor.v) * 100}%`;
+      hueHandle.style.top = `${(activeColor.h / 360) * 100}%`;
+      newPreview.style.background = hex;
+      currentPreview.style.background = activeColorOriginal;
+      pickerH.value = String(Math.round(activeColor.h));
+      pickerS.value = String(Math.round(activeColor.s * 100));
+      pickerB.value = String(Math.round(activeColor.v * 100));
+      pickerR.value = String(Math.round(rgb.r));
+      pickerG.value = String(Math.round(rgb.g));
+      pickerBlue.value = String(Math.round(rgb.b));
+      pickerHex.value = hex.slice(1).toUpperCase();
+    }
+
+    function openColorPicker(key, control) {
+      activeColorKey = key;
+      activeColorControl = control;
+      activeColorOriginal = normalizeHex(state[key]) || '#ffffff';
+      pickerTitle.textContent = control.label;
+      setPickerFromHex(activeColorOriginal);
+      colorPickerModal.classList.remove('is-hidden');
+      colorPickerModal.setAttribute('aria-hidden', 'false');
+      ensurePickerInView();
+      pickerHex.focus();
+      pickerHex.select();
+    }
+
+    function closeColorPicker() {
+      colorPickerModal.classList.add('is-hidden');
+      colorPickerModal.setAttribute('aria-hidden', 'true');
+      activeColorKey = null;
+      activeColorControl = null;
+    }
+
+    function commitColorPicker() {
+      closeColorPicker();
+    }
+
+    function cancelColorPicker() {
+      if (activeColorKey && activeColorControl) {
+        state[activeColorKey] = activeColorOriginal;
+        const entry = inputs.get(activeColorKey);
+        if (entry) {
+          entry.input.value = activeColorOriginal.toUpperCase();
+          if (entry.swatch) entry.swatch.style.background = activeColorOriginal;
+        }
+        onChange(activeColorControl);
+      }
+      closeColorPicker();
+    }
+
+    function applySvFromEvent(event) {
+      const rect = svPlane.getBoundingClientRect();
+      activeColor.s = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+      activeColor.v = 1 - Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
+      updateColorPickerUI();
+      applyActiveColorLive();
+    }
+
+    function applyHueFromEvent(event) {
+      const rect = hueBar.getBoundingClientRect();
+      activeColor.h = Math.min(360, Math.max(0, ((event.clientY - rect.top) / rect.height) * 360));
+      updateColorPickerUI();
+      applyActiveColorLive();
+    }
+
+    svPlane.addEventListener('pointerdown', (event) => {
+      svPlane.setPointerCapture(event.pointerId);
+      applySvFromEvent(event);
+    });
+    svPlane.addEventListener('pointermove', (event) => {
+      if (svPlane.hasPointerCapture(event.pointerId)) applySvFromEvent(event);
+    });
+    hueBar.addEventListener('pointerdown', (event) => {
+      hueBar.setPointerCapture(event.pointerId);
+      applyHueFromEvent(event);
+    });
+    hueBar.addEventListener('pointermove', (event) => {
+      if (hueBar.hasPointerCapture(event.pointerId)) applyHueFromEvent(event);
+    });
+
+    pickerTitle.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      const rect = colorPickerModal.getBoundingClientRect();
+      pickerDrag = {
+        pointerId: event.pointerId,
+        offsetX: event.clientX - rect.left,
+        offsetY: event.clientY - rect.top
+      };
+      pickerTitle.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+    pickerTitle.addEventListener('pointermove', (event) => {
+      if (!pickerDrag || pickerDrag.pointerId !== event.pointerId) return;
+      setPickerPosition(event.clientX - pickerDrag.offsetX, event.clientY - pickerDrag.offsetY);
+    });
+    pickerTitle.addEventListener('pointerup', (event) => {
+      if (!pickerDrag || pickerDrag.pointerId !== event.pointerId) return;
+      pickerTitle.releasePointerCapture(event.pointerId);
+      pickerDrag = null;
+    });
+    pickerTitle.addEventListener('pointercancel', () => {
+      pickerDrag = null;
+    });
+
+    [pickerH, pickerS, pickerB].forEach((input) => {
+      input.addEventListener('change', () => {
+        activeColor.h = Math.min(360, Math.max(0, Number(pickerH.value) || 0));
+        activeColor.s = Math.min(1, Math.max(0, (Number(pickerS.value) || 0) / 100));
+        activeColor.v = Math.min(1, Math.max(0, (Number(pickerB.value) || 0) / 100));
+        updateColorPickerUI();
+        applyActiveColorLive();
+      });
+    });
+
+    [pickerR, pickerG, pickerBlue].forEach((input) => {
+      input.addEventListener('change', () => {
+        const rgb = {
+          r: Math.min(255, Math.max(0, Number(pickerR.value) || 0)),
+          g: Math.min(255, Math.max(0, Number(pickerG.value) || 0)),
+          b: Math.min(255, Math.max(0, Number(pickerBlue.value) || 0))
+        };
+        activeColor = rgbToHsv(rgb.r, rgb.g, rgb.b);
+        updateColorPickerUI();
+        applyActiveColorLive();
+      });
+    });
+
+    pickerHex.addEventListener('change', () => {
+      const normalized = normalizeHex(pickerHex.value);
+      if (normalized) {
+        setPickerFromHex(normalized);
+        applyActiveColorLive();
+      }
+      else updateColorPickerUI();
+    });
+    pickerHex.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') commitColorPicker();
+    });
+    pickerOk.addEventListener('click', commitColorPicker);
+    pickerCancel.addEventListener('click', cancelColorPicker);
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !colorPickerModal.classList.contains('is-hidden')) cancelColorPicker();
+      if (event.key === 'Escape' && exportDrawer.classList.contains('is-open')) setExportDrawer(false);
+    });
+
+    function syncUI() {
+      inputs.forEach((entry, key) => {
+        const value = state[key];
+        if (entry.input.type === 'checkbox') {
+          entry.input.checked = Boolean(value);
+        } else if (entry.picker) {
+          entry.input.value = String(value).toUpperCase();
+          if (entry.swatch) entry.swatch.style.background = value;
+        } else {
+          entry.input.value = value;
+        }
+        if (entry.value) entry.value.value = formatValue(value, entry.control.step);
+      });
+      updateExportSummary();
+    }
+
+    function onChange(control) {
+      if (control.key === 'layout' && state.layout === 'line') {
+        state.layoutFacing = 'same direction';
+        state.panelAspect = 1;
+        state.lineSpacingX = 1.35;
+        state.lineSpacingZ = 0;
+        state.lineWaveAmount = 0.42;
+        state.lineWaveDepth = 0.28;
+        state.lineWaveFrequency = 1.25;
+        state.lineWaveStyle = 'flow';
+        state.lineWaveSpeed = 1.15;
+        state.sizeVariation = 0;
+        state.tiltVariation = 0;
+        state.axisRotX = 0;
+        state.axisRotY = 0;
+        state.axisRotZ = 0;
+        state.rotationPreset = 'side 90deg';
+        state.shapeRotX = 0;
+        state.shapeRotY = 90;
+        state.shapeRotZ = 0;
+        masterGroup.rotation.set(0, 0, 0);
+        orbitGroup.rotation.set(0, 0, 0);
+        syncUI();
+        rebuildItems();
+      }
+      if (control.key === 'groupRotateMode') {
+        masterGroup.rotation.set(0, 0, 0);
+        orbitGroup.rotation.set(0, 0, 0);
+      }
+      if (control.key === 'selfSpinTiming') {
+        syncUI();
+      }
+      if (control.rotationPreset && state.rotationPreset !== 'custom') {
+        const values = rotationPresets[state.rotationPreset];
+        if (values) {
+          [state.shapeRotX, state.shapeRotY, state.shapeRotZ] = values;
+          syncUI();
+        }
+      }
+      if (['shapeRotX', 'shapeRotY', 'shapeRotZ'].includes(control.key)) {
+        state.rotationPreset = 'custom';
+        syncUI();
+      }
+      if (control.key === 'cameraPreset' && state.cameraPreset !== 'custom') {
+        const values = cameraAngles[state.cameraPreset];
+        if (values) {
+          [state.cameraYaw, state.cameraPitch, state.cameraRoll] = values;
+          syncUI();
+        }
+      }
+      if (control.cameraManual) {
+        state.cameraPreset = 'custom';
+        syncUI();
+      }
+      if (control.key === 'canvasSize' && state.canvasSize !== 'Custom') {
+        const presetSize = canvasPresets[state.canvasSize];
+        if (presetSize) {
+          [state.canvasWidth, state.canvasHeight] = presetSize;
+          syncUI();
+        }
+      }
+      if (['canvasWidth', 'canvasHeight'].includes(control.key)) {
+        state.canvasWidth = THREE.MathUtils.clamp(Math.round(state.canvasWidth), 320, 4096);
+        state.canvasHeight = THREE.MathUtils.clamp(Math.round(state.canvasHeight), 320, 4096);
+        state.canvasSize = 'Custom';
+        syncUI();
+      }
+      if (control.rebuild) rebuildItems();
+      if (control.camera) moveCamera(state.cameraPreset, true);
+      if (control.canvas) resize();
+      updateFocusBlur();
+      applyLook();
+      applyLayoutAxis();
+      updateLayout();
+      updateExportSummary();
+      refreshConditionalUI();
+    }
+
+    function rollRandomVariation() {
+      state.randomSeed += 1;
+      updateLayout();
+    }
+
+    function applyLayoutAxis() {
+      layoutGroup.rotation.order = 'YXZ';
+      layoutGroup.rotation.set(
+        THREE.MathUtils.degToRad(state.axisRotX),
+        THREE.MathUtils.degToRad(state.axisRotY),
+        THREE.MathUtils.degToRad(state.axisRotZ)
+      );
+    }
+
+    function roundedRectShape(width, height, radius) {
+      const x = -width / 2;
+      const y = -height / 2;
+      const r = Math.min(radius, width * .45, height * .45);
+      const shape = new THREE.Shape();
+      shape.moveTo(x + r, y);
+      shape.lineTo(x + width - r, y);
+      shape.quadraticCurveTo(x + width, y, x + width, y + r);
+      shape.lineTo(x + width, y + height - r);
+      shape.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      shape.lineTo(x + r, y + height);
+      shape.quadraticCurveTo(x, y + height, x, y + height - r);
+      shape.lineTo(x, y + r);
+      shape.quadraticCurveTo(x, y, x + r, y);
+      return shape;
+    }
+
+    function getPanelDimensions() {
+      const aspect = Math.max(0.05, state.panelAspect);
+      const width = state.panelSize * Math.sqrt(aspect);
+      const height = state.panelSize / Math.sqrt(aspect);
+      return { width, height };
+    }
+
+    function createDiscGeometry(width, height) {
+      if (state.discInflate <= 0.001) {
+        const flat = new THREE.CylinderGeometry(0.5, 0.5, state.thickness, 128, 1, false);
+        flat.rotateX(Math.PI / 2);
+        flat.scale(width, height, 1);
+        flat.computeVertexNormals();
+        return flat;
+      }
+
+      const minDimension = Math.min(width, height);
+      const halfDepth = state.thickness * 0.5 + minDimension * 0.16 * state.discInflate;
+      const profile = [];
+      const profileSteps = 34;
+      for (let i = 0; i <= profileSteps; i++) {
+        const angle = (i / profileSteps) * Math.PI;
+        const radius = Math.sin(angle) * 0.5;
+        const depth = Math.cos(angle) * halfDepth;
+        profile.push(new THREE.Vector2(radius, depth));
+      }
+
+      const geometry = new THREE.LatheGeometry(profile, 128);
+      geometry.rotateX(Math.PI / 2);
+      geometry.scale(width, height, 1);
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    function createMainGeometry() {
+      const { width, height } = getPanelDimensions();
+      if (state.shape === 'disc') {
+        return createDiscGeometry(width, height);
+      }
+
+      const cornerRadius = Math.min(width, height) * state.cornerRadius;
+      const geometry = new THREE.ExtrudeGeometry(roundedRectShape(width, height, cornerRadius), {
+        depth: state.thickness,
+        bevelEnabled: true,
+        bevelSize: Math.min(0.035, state.thickness * 0.42),
+        bevelThickness: Math.min(0.035, state.thickness * 0.42),
+        bevelSegments: 5,
+        curveSegments: 16,
+        steps: 1
+      });
+      geometry.center();
+      geometry.computeVertexNormals();
+      return geometry;
+    }
+
+    function rebuildItems() {
+      items.forEach((item) => orbitGroup.remove(item.group));
+      items = [];
+      if (sharedGeometry) sharedGeometry.dispose();
+      sharedGeometry = createMainGeometry();
+      syncUI();
+
+      for (let i = 0; i < state.count; i++) {
+        const group = new THREE.Group();
+        group.name = `itemGroup_${i}`;
+        const pivot = new THREE.Group();
+        pivot.name = `shapePivot_${i}`;
+
+        const fill = new THREE.Mesh(sharedGeometry, fillMaterial);
+        fill.name = `fill_${i}`;
+        fill.scale.setScalar(0.985);
+        fill.renderOrder = i * 3;
+
+        const glass = new THREE.Mesh(sharedGeometry, glassMaterial);
+        glass.name = `mesh_${i}`;
+        glass.renderOrder = i * 3 + 1;
+
+        pivot.add(fill, glass);
+        group.add(pivot);
+        orbitGroup.add(group);
+        items.push({ group, pivot, fill, glass, basePosition: new THREE.Vector3(), baseRotation: new THREE.Euler() });
+      }
+
+      applyLayoutAxis();
+      updateLayout();
+    }
+
+    function updateLayout() {
+      const count = Math.max(1, state.count);
+      const half = (count - 1) / 2;
+      const startAngle = THREE.MathUtils.degToRad(state.layoutStartAngle);
+
+      const facingRotation = (angle) => {
+        if (state.layoutFacing === 'same direction') return 0;
+        if (state.layoutFacing === 'inward') return -angle;
+        if (state.layoutFacing === 'outward') return -angle + Math.PI;
+        return -angle + Math.PI / 2;
+      };
+
+      items.forEach((item, i) => {
+        const t = count === 1 ? 0.5 : i / (count - 1);
+        const closedT = i / count;
+        const centered = i - half;
+        const position = item.basePosition;
+        const rotation = item.baseRotation;
+        position.set(0, 0, 0);
+        rotation.set(0, 0, 0);
+        const randomScale = Math.max(0.22, 1 + randomSigned(i, 1) * state.sizeVariation);
+        const randomTilt = THREE.MathUtils.degToRad(state.tiltVariation);
+        item.group.scale.setScalar(randomScale);
+
+        if (state.layout === 'line') {
+          position.set(
+            centered * state.lineSpacingX * state.spacing,
+            0,
+            centered * state.lineSpacingZ * state.spacing
+          );
+          rotation.y = state.layoutFacing === 'same direction' ? 0 : -0.18;
+        }
+
+        if (state.layout === 'ring') {
+          const a = startAngle + closedT * Math.PI * 2;
+          const ringRadius = 2.75 * state.spacing;
+          position.set(Math.cos(a) * ringRadius, 0, Math.sin(a) * ringRadius);
+          rotation.y = facingRotation(a);
+        }
+
+        if (state.layout === 'coil') {
+          const a = startAngle + t * Math.PI * 2 * state.coilTurns;
+          const radius = state.coilRadius * state.spacing;
+          const coilLength = Math.max(0.01, state.coilTurns * state.coilGap * state.spacing);
+          position.set(
+            (t - 0.5) * coilLength,
+            Math.cos(a) * radius,
+            Math.sin(a) * radius
+          );
+          const tangent = new THREE.Vector3(
+            coilLength,
+            -Math.sin(a) * radius * Math.PI * 2 * state.coilTurns,
+            Math.cos(a) * radius * Math.PI * 2 * state.coilTurns
+          ).normalize();
+          const lookMatrix = new THREE.Matrix4().lookAt(position, position.clone().add(tangent), new THREE.Vector3(0, 1, 0));
+          rotation.setFromRotationMatrix(lookMatrix, 'YXZ');
+          rotation.z += Math.PI / 2;
+        }
+
+        if (state.layout === 'spiral') {
+          const a = startAngle + t * Math.PI * 2 * state.spiralTurns;
+          const radius = (0.25 + t * 3.15 * state.spiralSpread) * state.spacing;
+          position.set(Math.cos(a) * radius, 0, Math.sin(a) * radius);
+          rotation.y = facingRotation(a + Math.PI * 0.08);
+          rotation.z = Math.sin(t * Math.PI * 2) * 0.05;
+        }
+
+        rotation.x += randomSigned(i, 2) * randomTilt;
+        rotation.y += randomSigned(i, 3) * randomTilt * 0.55;
+        rotation.z += randomSigned(i, 4) * randomTilt;
+
+        item.group.position.copy(position);
+        item.group.rotation.copy(rotation);
+        if (state.layout === 'line') applyLineWave(item, i, 0);
+      });
+    }
+
+    function applyLineWave(item, i, time) {
+      const count = Math.max(1, state.count);
+      const t = count === 1 ? 0.5 : i / (count - 1);
+      const wavePhase = (t - 0.5) * Math.PI * 2 * state.lineWaveFrequency + time;
+      const liftMode = state.lineWaveStyle === 'lift';
+      let wave = Math.sin(wavePhase) * state.lineWaveAmount;
+      const depthWave = liftMode ? 0 : Math.cos(wavePhase) * state.lineWaveDepth;
+      if (liftMode) {
+        const pulsePhase = ((time * 0.55 - t) % 1 + 1) % 1;
+        const rise = THREE.MathUtils.smoothstep(pulsePhase, 0.02, 0.16);
+        const fall = 1 - THREE.MathUtils.smoothstep(pulsePhase, 0.2, 0.42);
+        wave = Math.max(0, rise * fall) * state.lineWaveAmount;
+      }
+
+      item.group.position.set(
+        item.basePosition.x,
+        item.basePosition.y + wave,
+        item.basePosition.z + depthWave
+      );
+      item.group.rotation.copy(item.baseRotation);
+      item.group.rotation.y += state.layoutFacing === 'same direction' ? 0 : -depthWave * 0.08;
+      item.group.rotation.z += liftMode ? 0 : wave * 0.08;
+    }
+
+    function applyCoilFlow(item, i, time) {
+      const count = Math.max(1, state.count);
+      const t = count === 1 ? 0.5 : (((i / count) + time) % 1 + 1) % 1;
+      const startAngle = THREE.MathUtils.degToRad(state.layoutStartAngle);
+      const a = startAngle + t * Math.PI * 2 * state.coilTurns;
+      const radius = state.coilRadius * state.spacing;
+      const coilLength = Math.max(0.01, state.coilTurns * state.coilGap * state.spacing);
+      const position = new THREE.Vector3(
+        (t - 0.5) * coilLength,
+        Math.cos(a) * radius,
+        Math.sin(a) * radius
+      );
+      const tangent = new THREE.Vector3(
+        coilLength,
+        -Math.sin(a) * radius * Math.PI * 2 * state.coilTurns,
+        Math.cos(a) * radius * Math.PI * 2 * state.coilTurns
+      ).normalize();
+      const rotation = new THREE.Euler(0, 0, 0, 'YXZ');
+      const lookMatrix = new THREE.Matrix4().lookAt(position, position.clone().add(tangent), new THREE.Vector3(0, 1, 0));
+      rotation.setFromRotationMatrix(lookMatrix, 'YXZ');
+      rotation.z += Math.PI / 2;
+      const randomTilt = THREE.MathUtils.degToRad(state.tiltVariation);
+      rotation.x += randomSigned(i, 2) * randomTilt;
+      rotation.y += randomSigned(i, 3) * randomTilt * 0.55;
+      rotation.z += randomSigned(i, 4) * randomTilt;
+      item.group.position.copy(position);
+      item.group.rotation.copy(rotation);
+    }
+
+    function applyLook() {
+      const gloss = state.gloss;
+      scene.background.set(state.backgroundColor);
+      backdropMaterial.color.set(state.backgroundColor);
+      const autoEdge = new THREE.Color(state.objectColor).lerp(new THREE.Color('#ffffff'), 0.35);
+      rimLight.color.copy(autoEdge);
+      const solidGloss = state.materialStyle === 'solid gloss';
+      const chrome = state.materialStyle === 'chrome';
+      const glassDensity = solidGloss || chrome ? 0 : state.opacity;
+      const glassSolidify = solidGloss || chrome ? 0 : state.glassSolidify;
+      const toneMapStrength = solidGloss ? 1 : 0;
+
+      glassMaterial.color.set(state.objectColor);
+      glassMaterial.transparent = !(solidGloss || chrome);
+      glassMaterial.opacity = solidGloss || chrome ? 1 : state.opacity;
+      glassMaterial.transmission = solidGloss || chrome ? 0 : Math.max(0, 0.18 + gloss * 0.58 - glassDensity * 0.08 - glassSolidify * 0.7);
+      glassMaterial.metalness = chrome ? 0.74 : 0;
+      glassMaterial.roughness = chrome ? Math.max(0.035, 0.2 - gloss * 0.12) : solidGloss ? 0.32 - gloss * 0.27 : Math.max(0.035, 0.42 - gloss * 0.36 - glassSolidify * 0.04);
+      glassMaterial.reflectivity = chrome ? 1 : solidGloss ? 0.35 + gloss * 0.45 : Math.min(1, 0.42 + gloss * 0.55 + glassSolidify * 0.18);
+      glassMaterial.clearcoat = chrome ? 1 : solidGloss ? 0.65 + gloss * 0.35 : Math.min(1, 0.55 + gloss * 0.45 + glassSolidify * 0.16);
+      glassMaterial.clearcoatRoughness = chrome ? Math.max(0.01, 0.08 - gloss * 0.06) : solidGloss ? 0.18 - gloss * 0.14 : Math.max(0.018, 0.16 - gloss * 0.12 - glassSolidify * 0.04);
+      glassMaterial.specularIntensity = chrome ? 1 : solidGloss ? 0.55 + gloss * 0.45 : Math.min(1, 0.62 + gloss * 0.38 + glassSolidify * 0.18);
+      glassMaterial.specularColor.set(solidGloss ? state.toneHighlightColor : '#ffffff');
+      glassMaterial.envMap = chrome ? chromeReflectionTarget.texture : null;
+      glassMaterial.envMapIntensity = chrome ? 2.15 : 1;
+      glassMaterial.thickness = solidGloss || chrome ? 0 : 0.45 + glassDensity * 0.75 + gloss * 0.35;
+      glassMaterial.depthWrite = solidGloss || chrome;
+      glassMaterial.userData.uniforms.panelBaseColor.value.set(state.objectColor);
+      glassMaterial.userData.uniforms.panelGradientColor.value.set(state.panelGradientColor);
+      glassMaterial.userData.uniforms.panelGradientAmount.value = state.panelGradientAmount;
+      glassMaterial.userData.uniforms.panelGradientDirection.value = {
+        horizontal: 0,
+        vertical: 1,
+        diagonal: 2,
+        'horizontal reverse': 3,
+        'vertical reverse': 4,
+        'diagonal reverse': 5
+      }[state.panelGradientDirection] ?? 2;
+      glassMaterial.userData.uniforms.toneMapEnabled.value = state.toneMap && solidGloss ? 1 : 0;
+      glassMaterial.userData.uniforms.toneShadowColor.value.set(state.toneShadowColor);
+      glassMaterial.userData.uniforms.toneMidColor.value.set(state.toneMidColor);
+      glassMaterial.userData.uniforms.toneHighlightColor.value.set(state.toneHighlightColor);
+      glassMaterial.userData.uniforms.toneShadowLift.value = state.toneShadowLift;
+      glassMaterial.userData.uniforms.toneMapAmount.value = state.toneMapAmount * toneMapStrength;
+      glassMaterial.userData.uniforms.toneHighlightStrength.value = state.toneHighlightStrength * (solidGloss ? 1 : 0);
+      glassMaterial.userData.uniforms.chromeMode.value = chrome ? 1 : 0;
+      glassMaterial.userData.uniforms.chromeReflectColor.value.copy(autoEdge);
+
+      const backingColor = new THREE.Color(state.objectColor).lerp(new THREE.Color('#ffffff'), 0.14);
+      fillMaterial.color.copy(backingColor);
+      fillMaterial.opacity = solidGloss || chrome ? 0 : Math.min(0.58, state.glassBacking * (0.16 + state.opacity * 0.22 + glassSolidify * 0.16));
+    }
+
+    function updateChromeReflections(activeRenderer = renderer) {
+      if (state.materialStyle !== 'chrome') return;
+      const oldVisible = backdropMesh.visible;
+      const oldBackground = scene.background;
+      const oldEnvMap = glassMaterial.envMap;
+
+      backdropMesh.visible = false;
+      scene.background = chromeReflectionBackground;
+      glassMaterial.envMap = chromeEnvironment;
+      chromeCubeCamera.update(activeRenderer, scene);
+
+      backdropMesh.visible = oldVisible;
+      scene.background = oldBackground;
+      glassMaterial.envMap = oldEnvMap;
+      glassMaterial.envMap = chromeReflectionTarget.texture;
+    }
+
+    function updateCameraProjection() {
+      camera.fov = THREE.MathUtils.lerp(30, 78, state.perspectiveStrength);
+      camera.updateProjectionMatrix();
+    }
+
+    function cameraViewFor(preset) {
+      const perspectiveDolly = THREE.MathUtils.lerp(1.15, 0.55, state.perspectiveStrength);
+      const distance = 8.5 * perspectiveDolly / state.zoom;
+      const upY = new THREE.Vector3(0, 1, 0);
+      if (preset === 'front') {
+        return { position: new THREE.Vector3(0, 0, distance), up: upY };
+      }
+      if (preset === 'top') {
+        return { position: new THREE.Vector3(0, distance, 0), up: new THREE.Vector3(0, 0, -1) };
+      }
+      if (preset === 'side') {
+        return { position: new THREE.Vector3(distance, 0, 0), up: upY };
+      }
+      if (preset === 'isometric') {
+        return { position: new THREE.Vector3(distance * 0.72, distance * 0.72, distance * 0.72), up: upY };
+      }
+      if (preset === 'custom') {
+        const yaw = THREE.MathUtils.degToRad(state.cameraYaw);
+        const pitch = THREE.MathUtils.degToRad(state.cameraPitch);
+        const horizontal = Math.cos(pitch) * distance;
+        return {
+          position: new THREE.Vector3(
+            Math.sin(yaw) * horizontal,
+            Math.sin(pitch) * distance,
+            Math.cos(yaw) * horizontal
+          ),
+          up: upY
+        };
+      }
+      return { position: new THREE.Vector3(distance * 0.62, distance * 0.36, distance * 0.82), up: upY };
+    }
+
+    function moveCamera(preset, smooth) {
+      updateCameraProjection();
+      const view = cameraViewFor(preset);
+      const helper = camera.clone();
+      helper.position.copy(view.position);
+      helper.up.copy(view.up);
+      helper.lookAt(target);
+      applyCameraRoll(helper, state.cameraRoll);
+      if (!smooth) {
+        camera.position.copy(view.position);
+        camera.up.copy(view.up);
+        camera.quaternion.copy(helper.quaternion);
+        controls.target.copy(target);
+        controls.update();
+        return;
+      }
+      cameraTween = {
+        from: camera.position.clone(),
+        to: view.position,
+        fromQuaternion: camera.quaternion.clone(),
+        toQuaternion: helper.quaternion.clone(),
+        fromUp: camera.up.clone(),
+        toUp: view.up,
+        time: 0,
+        duration: 0.7
+      };
+    }
+
+    function applyCameraRoll(cam, degrees) {
+      if (!degrees) return;
+      const forward = new THREE.Vector3();
+      cam.getWorldDirection(forward);
+      const rollQuat = new THREE.Quaternion().setFromAxisAngle(forward.normalize(), THREE.MathUtils.degToRad(degrees));
+      cam.quaternion.premultiply(rollQuat);
+      cam.up.applyQuaternion(rollQuat).normalize();
+    }
+
+    function updateCameraTween(dt) {
+      if (!cameraTween) return;
+      cameraTween.time += dt;
+      const raw = Math.min(1, cameraTween.time / cameraTween.duration);
+      const t = raw * raw * (3 - 2 * raw);
+      camera.position.lerpVectors(cameraTween.from, cameraTween.to, t);
+      camera.quaternion.slerpQuaternions(cameraTween.fromQuaternion, cameraTween.toQuaternion, t);
+      camera.up.lerpVectors(cameraTween.fromUp, cameraTween.toUp, t).normalize();
+      controls.target.copy(target);
+      controls.update();
+      if (raw >= 1) {
+        camera.position.copy(cameraTween.to);
+        camera.quaternion.copy(cameraTween.toQuaternion);
+        camera.up.copy(cameraTween.toUp);
+        cameraTween = null;
+      }
+    }
+
+    function selectedCanvasSize() {
+      return {
+        width: THREE.MathUtils.clamp(Math.round(state.canvasWidth), 320, 4096),
+        height: THREE.MathUtils.clamp(Math.round(state.canvasHeight), 320, 4096)
+      };
+    }
+
+    function exportDimensions() {
+      const base = selectedCanvasSize();
+      const scale = Number.parseFloat(state.exportScale) || 1;
+      return {
+        width: Math.round(base.width * scale),
+        height: Math.round(base.height * scale)
+      };
+    }
+
+    function updateExportSummary() {
+      if (!exportSummary) return;
+      const base = selectedCanvasSize();
+      const output = exportDimensions();
+      const scale = state.exportScale || '1x';
+      const value = exportSummary.querySelector('.export-summary-value');
+      if (value) {
+        value.textContent = `${output.width} × ${output.height} · ${scale} from ${base.width} × ${base.height}`;
+      }
+    }
+
+    function resize() {
+      const { width: ratioW, height: ratioH } = selectedCanvasSize();
+      const availableW = Math.max(1, view.clientWidth - 44);
+      const availableH = Math.max(1, view.clientHeight - 44);
+      const ratio = ratioW / ratioH;
+      let w = availableW;
+      let h = w / ratio;
+      if (h > availableH) {
+        h = availableH;
+        w = h * ratio;
+      }
+      renderer.setSize(Math.round(w), Math.round(h), false);
+      composer.setSize(Math.round(w), Math.round(h));
+      canvas.style.width = `${Math.round(w)}px`;
+      canvas.style.height = `${Math.round(h)}px`;
+      camera.aspect = w / Math.max(1, h);
+      updateCameraProjection();
+    }
+
+    function updateFocusBlur() {
+      bokehPass.enabled = Boolean(state.focusBlur);
+      if (!bokehPass.uniforms) return;
+      bokehPass.uniforms.focus.value = state.focusDistance;
+      bokehPass.uniforms.aperture.value = 0.000012 + state.focusAmount * 0.00007;
+      bokehPass.uniforms.maxblur.value = state.focusAmount * 0.018;
+    }
+
+    function renderScene(activeRenderer = renderer) {
+      if (activeRenderer === renderer && state.focusBlur) {
+        composer.render();
+        return;
+      }
+      activeRenderer.render(scene, camera);
+    }
+
+    function downloadDataURL(dataURL, filename) {
+      const link = document.createElement('a');
       link.download = filename;
-      document.body.appendChild(link);
+      link.href = dataURL;
       link.click();
-      link.remove();
+    }
+
+    function downloadText(text, filename, type = 'application/json') {
+      const blob = new Blob([text], { type });
+      const url = URL.createObjectURL(blob);
+      downloadDataURL(url, filename);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    function mapBasicForm(value) {
-      state.params.bend = lerp(0.5, 0.96, value);
-      state.params.radius = lerp(1.06, 0.72, value);
-      state.params.edgeMin = lerp(0.008, 0.018, value);
-      state.params.edgeMax = lerp(0.058, 0.112, value);
-    }
-
-    function mapBasicMotion(value) {
-      state.params.flowSpeed = lerp(0.08, 3.2, value);
-      state.params.splitFlow = lerp(0.12, 1.9, value);
-      state.params.edgeTension = lerp(0.08, 1.45, value);
-      state.driftAmplitude = lerp(0.07, 0.52, value);
-    }
-
-    function randomRange(random, min, max) {
-      return lerp(min, max, random());
-    }
-
-    function chooseFamily(seed) {
-      return FAMILIES[Math.abs(seed) % FAMILIES.length];
-    }
-
-    function createBlob(center, scale, weight, rotation, stretch, random, drift = 1) {
-      return {
-        center: [
-          center[0] + randomRange(random, -0.055, 0.055) * drift,
-          center[1] + randomRange(random, -0.055, 0.055) * drift
-        ],
-        scale: scale * randomRange(random, 0.94, 1.07),
-        weight: weight * randomRange(random, 0.96, 1.04),
-        rotation: rotation + randomRange(random, -0.16, 0.16),
-        stretch: stretch * randomRange(random, 0.92, 1.1),
-        motion: [random(), random(), random() * Math.PI * 2, random() * Math.PI * 2]
+    function exportParameters() {
+      const payload = {
+        app: 'Glass Plate Array',
+        version: 1,
+        savedAt: new Date().toISOString(),
+        state: { ...state }
       };
+      downloadText(JSON.stringify(payload, null, 2), `glass-parameters-${Date.now()}.json`);
     }
 
-    function generateBlobs() {
-      const random = mulberry32(state.seed);
-      const family = state.family;
-      let templates;
-      let bias;
-
-      if (family === "split") {
-        const vertical = random() > 0.5;
-        const s = vertical ? 1 : 0;
-        templates = [
-          [[s ? -0.5 : -0.92, s ? -0.72 : -0.2], 1.02, 1.02, s ? 0.2 : 1.35, 1.65],
-          [[s ? -0.1 : -0.28, s ? -0.15 : 0.08], 0.9, 0.92, s ? -0.15 : 1.48, 1.55],
-          [[s ? 0.35 : 0.36, s ? 0.42 : 0.18], 0.78, 0.78, s ? 0.18 : 1.35, 1.38],
-          [[s ? 0.76 : 0.94, s ? 0.88 : 0.26], 0.68, 0.55, s ? -0.08 : 1.45, 1.42],
-          [[s ? 0.14 : 0.16, s ? -1.08 : -0.82], 0.72, -0.22, s ? 0.1 : 1.2, 1.2]
-        ];
-        bias = [vertical ? 0.22 : -0.05, vertical ? -0.08 : 0.24, randomRange(random, 0.42, 0.72)];
-      } else if (family === "ribbon") {
-        templates = [
-          [[-0.7, -0.38], 0.76, 0.88, -0.62, 1.85],
-          [[-0.22, 0.22], 0.68, -0.42, 0.76, 1.7],
-          [[0.18, -0.05], 0.76, 0.82, -0.4, 1.65],
-          [[0.62, 0.38], 0.64, -0.32, 0.7, 1.58],
-          [[0.02, 0.0], 0.72, 0.48, 0.2, 1.25]
-        ];
-        bias = [randomRange(random, -0.18, 0.18), randomRange(random, -0.1, 0.18), randomRange(random, 0.18, 0.38)];
-      } else if (family === "crop") {
-        templates = [
-          [[-0.88, 0.02], 1.2, 1.05, 0.24, 1.36],
-          [[-0.42, -0.44], 0.88, 0.64, -0.28, 1.42],
-          [[-0.3, 0.48], 0.82, 0.58, 0.42, 1.28],
-          [[0.38, 0.0], 0.62, -0.26, -0.1, 1.2],
-          [[0.8, -0.72], 0.74, 0.24, 0.4, 1.08]
-        ];
-        bias = [randomRange(random, -0.3, 0.08), randomRange(random, -0.16, 0.16), randomRange(random, 0.24, 0.48)];
-      } else {
-        templates = [
-          [[-0.34, -0.12], 0.88, 0.92, -0.16, 1.35],
-          [[0.2, 0.08], 0.74, 0.8, 0.24, 1.3],
-          [[-0.02, 0.38], 0.58, 0.34, -0.52, 1.25],
-          [[0.08, -0.42], 0.56, 0.28, 0.4, 1.18],
-          [[0.56, -0.02], 0.52, -0.18, -0.18, 1.1]
-        ];
-        bias = [randomRange(random, -0.12, 0.12), randomRange(random, -0.1, 0.1), randomRange(random, 0.08, 0.28)];
+    function sanitizeImportedState(nextState) {
+      const allowedLayouts = ['line', 'ring', 'coil', 'spiral'];
+      const allowedShapes = ['disc', 'roundedRect'];
+      const allowedMaterials = ['solid gloss', 'glass', 'chrome'];
+      const allowedCameraPresets = ['front', 'top', 'side', 'isometric', 'perspective', 'custom'];
+      const allowedGradientDirections = ['horizontal', 'horizontal reverse', 'vertical', 'vertical reverse', 'diagonal', 'diagonal reverse'];
+      const allowedFacing = ['tangent', 'same direction', 'inward', 'outward'];
+      const allowedLineWaveStyles = ['flow', 'lift'];
+      const allowedCanvasSizes = [...canvasSizeOptions];
+      const allowedExportScales = ['1x', '2x', '3x', '4x'];
+      if (!allowedLayouts.includes(nextState.layout)) nextState.layout = 'ring';
+      if (!allowedShapes.includes(nextState.shape)) nextState.shape = 'disc';
+      if (!allowedMaterials.includes(nextState.materialStyle)) nextState.materialStyle = 'glass';
+      if (!allowedCameraPresets.includes(nextState.cameraPreset)) nextState.cameraPreset = 'perspective';
+      if (!allowedGradientDirections.includes(nextState.panelGradientDirection)) nextState.panelGradientDirection = 'diagonal';
+      if (!allowedFacing.includes(nextState.layoutFacing)) nextState.layoutFacing = 'tangent';
+      if (!allowedLineWaveStyles.includes(nextState.lineWaveStyle)) nextState.lineWaveStyle = 'flow';
+      if (!allowedCanvasSizes.includes(nextState.canvasSize)) nextState.canvasSize = '16:9 Widescreen';
+      if (!Number.isFinite(nextState.canvasWidth)) nextState.canvasWidth = canvasPresets[nextState.canvasSize]?.[0] || 1920;
+      if (!Number.isFinite(nextState.canvasHeight)) nextState.canvasHeight = canvasPresets[nextState.canvasSize]?.[1] || 1080;
+      if (nextState.canvasSize !== 'Custom' && canvasPresets[nextState.canvasSize]) {
+        [nextState.canvasWidth, nextState.canvasHeight] = canvasPresets[nextState.canvasSize];
       }
-
-      state.blobs = templates.map((item) => createBlob(item[0], item[1], item[2], item[3], item[4], random, family === "crop" ? 1.35 : 1));
-      state.bias = bias;
-    }
-
-    class FlowRenderer {
-      constructor(canvas) {
-        this.canvas = canvas;
-        this.gl = canvas.getContext("webgl2", {
-          alpha: false,
-          antialias: false,
-          preserveDrawingBuffer: true
-        });
-        if (!this.gl) {
-          this.supported = false;
-          return;
-        }
-        this.supported = true;
-        this.program = this.createProgram(vertexSource, fragmentSource);
-        this.uniforms = this.getUniforms();
-        this.buffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), this.gl.STATIC_DRAW);
-        this.gl.useProgram(this.program);
-        this.gl.enableVertexAttribArray(0);
-        this.gl.vertexAttribPointer(0, 2, this.gl.FLOAT, false, 0, 0);
-      }
-
-      createShader(type, source) {
-        const gl = this.gl;
-        const shader = gl.createShader(type);
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          throw new Error(gl.getShaderInfoLog(shader) || "Shader compile failed");
-        }
-        return shader;
-      }
-
-      createProgram(vertex, fragment) {
-        const gl = this.gl;
-        const program = gl.createProgram();
-        gl.attachShader(program, this.createShader(gl.VERTEX_SHADER, vertex));
-        gl.attachShader(program, this.createShader(gl.FRAGMENT_SHADER, fragment));
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-          throw new Error(gl.getProgramInfoLog(program) || "Program link failed");
-        }
-        return program;
-      }
-
-      getUniforms() {
-        const gl = this.gl;
-        const names = [
-          "u_resolution", "u_time", "u_seed", "u_family", "u_colorA", "u_colorB", "u_boundaryColor",
-          "u_bend", "u_radius", "u_edgeStrength", "u_edgeMin", "u_edgeMax",
-          "u_blur", "u_flowSpeed", "u_splitFlow", "u_edgeTension", "u_grain", "u_grainMode", "u_driftAmplitude",
-          "u_bias"
-        ];
-        const uniforms = Object.fromEntries(names.map((name) => [name, gl.getUniformLocation(this.program, name)]));
-        uniforms.u_centers = gl.getUniformLocation(this.program, "u_centers[0]");
-        uniforms.u_blobShape = gl.getUniformLocation(this.program, "u_blobShape[0]");
-        uniforms.u_blobMotion = gl.getUniformLocation(this.program, "u_blobMotion[0]");
-        return uniforms;
-      }
-
-      resize(width, height, ratio = window.devicePixelRatio || 1) {
-        const dpr = Math.min(DPR_LIMIT, Math.max(1, ratio));
-        const targetWidth = Math.max(1, Math.floor(width * dpr));
-        const targetHeight = Math.max(1, Math.floor(height * dpr));
-        if (this.canvas.width !== targetWidth || this.canvas.height !== targetHeight) {
-          this.canvas.width = targetWidth;
-          this.canvas.height = targetHeight;
-        }
-      }
-
-      render(renderState, time) {
-        if (!this.supported) return;
-        const gl = this.gl;
-        const centers = new Float32Array(MAX_BLOBS * 2);
-        const shapes = new Float32Array(MAX_BLOBS * 4);
-        const motions = new Float32Array(MAX_BLOBS * 4);
-
-        renderState.blobs.forEach((blob, index) => {
-          centers[index * 2] = blob.center[0];
-          centers[index * 2 + 1] = blob.center[1];
-          shapes[index * 4] = blob.scale;
-          shapes[index * 4 + 1] = blob.weight;
-          shapes[index * 4 + 2] = blob.rotation;
-          shapes[index * 4 + 3] = blob.stretch;
-          motions[index * 4] = blob.motion[0];
-          motions[index * 4 + 1] = blob.motion[1];
-          motions[index * 4 + 2] = blob.motion[2];
-          motions[index * 4 + 3] = blob.motion[3];
-        });
-
-        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        gl.useProgram(this.program);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-        gl.uniform2f(this.uniforms.u_resolution, this.canvas.width, this.canvas.height);
-        gl.uniform1f(this.uniforms.u_time, time);
-        gl.uniform1f(this.uniforms.u_seed, renderState.seed);
-        gl.uniform1i(this.uniforms.u_family, FAMILIES.indexOf(renderState.family));
-        gl.uniform3fv(this.uniforms.u_colorA, renderState.colors.colorA);
-        gl.uniform3fv(this.uniforms.u_colorB, renderState.colors.colorB);
-        gl.uniform3fv(this.uniforms.u_boundaryColor, renderState.colors.boundary);
-        gl.uniform1f(this.uniforms.u_bend, renderState.params.bend);
-        gl.uniform1f(this.uniforms.u_radius, renderState.params.radius);
-        gl.uniform1f(this.uniforms.u_edgeStrength, renderState.params.edgeStrength);
-        gl.uniform1f(this.uniforms.u_edgeMin, renderState.params.edgeMin);
-        gl.uniform1f(this.uniforms.u_edgeMax, renderState.params.edgeMax);
-        gl.uniform1f(this.uniforms.u_blur, renderState.params.blur);
-        gl.uniform1f(this.uniforms.u_flowSpeed, renderState.params.flowSpeed);
-        gl.uniform1f(this.uniforms.u_splitFlow, renderState.params.splitFlow);
-        gl.uniform1f(this.uniforms.u_edgeTension, renderState.params.edgeTension);
-        gl.uniform1f(this.uniforms.u_grain, renderState.params.grain);
-        gl.uniform1f(this.uniforms.u_grainMode, renderState.params.grainMode);
-        gl.uniform1f(this.uniforms.u_driftAmplitude, renderState.driftAmplitude);
-        gl.uniform3fv(this.uniforms.u_bias, new Float32Array(renderState.bias || [0, 0, 0.2]));
-        gl.uniform2fv(this.uniforms.u_centers, centers);
-        gl.uniform4fv(this.uniforms.u_blobShape, shapes);
-        gl.uniform4fv(this.uniforms.u_blobMotion, motions);
-
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-      }
-    }
-
-    const elements = {
-      previewCanvas: document.getElementById("previewCanvas"),
-      notice: document.getElementById("notice"),
-      swatches: document.getElementById("swatches"),
-      artboard: document.querySelector(".artboard"),
-      ratioList: document.getElementById("ratioList"),
-      canvasWidth: document.getElementById("canvasWidth"),
-      canvasHeight: document.getElementById("canvasHeight"),
-      colorA: document.getElementById("colorA"),
-      colorAHex: document.getElementById("colorAHex"),
-      colorB: document.getElementById("colorB"),
-      colorBHex: document.getElementById("colorBHex"),
-      boundaryColor: document.getElementById("boundaryColor"),
-      boundaryColorHex: document.getElementById("boundaryColorHex"),
-      basicForm: document.getElementById("basicForm"),
-      basicFormValue: document.getElementById("basicFormValue"),
-      basicMotion: document.getElementById("basicMotion"),
-      basicMotionValue: document.getElementById("basicMotionValue"),
-      animateToggle: document.getElementById("animateToggle"),
-      randomiseButton: document.getElementById("randomiseButton"),
-      downloadImage: document.getElementById("downloadImage"),
-      videoDuration: document.getElementById("videoDuration"),
-      downloadVideo: document.getElementById("downloadVideo"),
-      themeToggle: document.getElementById("themeToggle")
-    };
-
-    let renderer;
-    let lastNow = performance.now();
-    let accumulatedTime = 0;
-    let frozenTime = 0;
-
-    function setStatus(message) {
-      console.info(message);
-    }
-
-    function syncLabels() {
-      elements.basicFormValue.textContent = format(state.basicForm);
-      elements.basicMotionValue.textContent = format(state.basicMotion);
-      document.querySelectorAll("[data-param]").forEach((output) => {
-        output.textContent = format(state.params[output.dataset.param]);
-      });
-      document.querySelectorAll(".swatch").forEach((button) => {
-        const index = Number(button.dataset.palette);
-        button.classList.toggle("active", index === state.paletteIndex);
-        const strip = button.querySelector(".swatch-strip");
-        if (strip) strip.style.background = PALETTES[index].strip;
-      });
-      const colorAHex = rgbToHex(state.colors.colorA);
-      const colorBHex = rgbToHex(state.colors.colorB);
-      const boundaryHex = rgbToHex(state.colors.boundary);
-      elements.colorA.value = colorAHex;
-      elements.colorAHex.value = colorAHex;
-      elements.colorB.value = colorBHex;
-      elements.colorBHex.value = colorBHex;
-      elements.boundaryColor.value = boundaryHex;
-      elements.boundaryColorHex.value = boundaryHex;
-      const size = getCanvasSize();
-      elements.artboard.style.aspectRatio = `${size.width} / ${size.height}`;
-      elements.canvasWidth.value = String(size.width);
-      elements.canvasHeight.value = String(size.height);
-      document.querySelectorAll('input[name="canvasRatio"]').forEach((input) => {
-        input.checked = input.value === state.canvas.ratio;
-      });
-      document.querySelectorAll('input[name="grainMode"]').forEach((input) => {
-        input.checked = Number(input.value === "animated") === state.params.grainMode;
+      nextState.canvasWidth = THREE.MathUtils.clamp(Math.round(nextState.canvasWidth), 320, 4096);
+      nextState.canvasHeight = THREE.MathUtils.clamp(Math.round(nextState.canvasHeight), 320, 4096);
+      if (!allowedExportScales.includes(nextState.exportScale)) nextState.exportScale = '1x';
+      ['backgroundColor', 'objectColor', 'panelGradientColor', 'toneShadowColor', 'toneMidColor', 'toneHighlightColor'].forEach((key) => {
+        nextState[key] = normalizeHex(nextState[key]) || state[key];
       });
     }
 
-    function fitArtboardToStage() {
-      const stage = document.querySelector(".stage");
-      const stageRect = stage.getBoundingClientRect();
-      const size = getCanvasSize();
-      const canvasRatio = size.width / size.height;
-      const stageRatio = stageRect.width / Math.max(1, stageRect.height);
-
-      let width;
-      let height;
-      if (stageRatio > canvasRatio) {
-        height = stageRect.height;
-        width = height * canvasRatio;
-      } else {
-        width = stageRect.width;
-        height = width / canvasRatio;
-      }
-
-      elements.artboard.style.width = `${Math.max(1, Math.floor(width))}px`;
-      elements.artboard.style.height = `${Math.max(1, Math.floor(height))}px`;
-    }
-
-    function buildRatioOptions() {
-      ASPECT_RATIOS.forEach((ratio) => {
-        const label = document.createElement("label");
-        label.className = "ratio-option";
-        label.innerHTML = `
-          <input type="radio" name="canvasRatio" value="${ratio.value}">
-          <span class="ratio-value">${ratio.value}</span>
-          <span class="ratio-name">${ratio.label}</span>
-        `;
-        label.querySelector("input").addEventListener("change", (event) => {
-          state.canvas.ratio = event.target.value;
-          setCanvasFromWidth(state.canvas.width);
-          syncLabels();
-          resizePreview();
-        });
-        elements.ratioList.appendChild(label);
+    function applyImportedState(importedState) {
+      Object.keys(importedState).forEach((key) => {
+        if (!(key in state)) return;
+        const currentType = typeof state[key];
+        if (typeof importedState[key] === currentType) state[key] = importedState[key];
       });
+      sanitizeImportedState(state);
+      syncUI();
+      applyTheme();
+      applyLook();
+      applyLayoutAxis();
+      rebuildItems();
+      resize();
+      updateFocusBlur();
+      moveCamera(state.cameraPreset, false);
+      refreshConditionalUI();
     }
 
-    function buildSwatches() {
-      PALETTES.forEach((palette, index) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "swatch";
-        button.dataset.palette = String(index);
-        button.innerHTML = `
-          <span class="swatch-strip"></span>
-          <span>${palette.name}</span>
-          <small>${palette.note}</small>
-        `;
-        button.addEventListener("click", () => {
-          state.paletteIndex = index;
-          state.colors.colorA = palette.colorA.slice();
-          state.colors.colorB = palette.colorB.slice();
-          state.colors.boundary = palette.boundary.slice();
-          syncLabels();
-        });
-        elements.swatches.appendChild(button);
-      });
+    function importParameters() {
+      parameterFileInput.value = '';
+      parameterFileInput.click();
     }
 
-    function buildAdvancedControls() {
-      Object.entries(ADVANCED_CONTROLS).forEach(([key, config]) => {
-        const host = document.querySelector(`[data-control="${key}"]`);
-        host.innerHTML = `
-          <div class="label-row">
-            <label for="${key}">${config.label}</label>
-            <output data-param="${key}">${format(state.params[key])}</output>
-          </div>
-          <input id="${key}" type="range" min="${config.min}" max="${config.max}" step="${config.step}" value="${state.params[key]}">
-        `;
-        host.querySelector("input").addEventListener("input", (event) => {
-          state.params[key] = Number(event.target.value);
-          syncLabels();
-        });
-      });
-    }
-
-    function bindColorControl(colorInput, hexInput, slot) {
-      colorInput.addEventListener("input", (event) => {
-        if (updatePaletteColor(slot, event.target.value)) {
-          syncLabels();
+    parameterFileInput.addEventListener('change', () => {
+      const file = parameterFileInput.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || '{}'));
+          const importedState = parsed.state && typeof parsed.state === 'object' ? parsed.state : parsed;
+          applyImportedState(importedState);
+        } catch (error) {
+          window.alert('Could not import this parameter file.');
         }
       });
+      reader.readAsText(file);
+    });
 
-      hexInput.addEventListener("change", (event) => {
-        const normalized = normalizeHex(event.target.value);
-        if (normalized && updatePaletteColor(slot, normalized)) {
-          syncLabels();
-        } else {
-          syncLabels();
+    function withExportRenderSize(callback) {
+      const { width, height } = exportDimensions();
+      const oldPixelRatio = renderer.getPixelRatio();
+      renderer.setPixelRatio(1);
+      renderer.setSize(width, height, false);
+      composer.setSize(width, height);
+      camera.aspect = width / Math.max(1, height);
+      updateCameraProjection();
+      const result = callback(width, height);
+      renderer.setPixelRatio(oldPixelRatio);
+      resize();
+      return result;
+    }
+
+    function renderStill({ transparent = false } = {}) {
+      const wasVisible = backdropMesh.visible;
+      const oldBackground = scene.background;
+      const oldClearAlpha = renderer.getClearAlpha();
+      const oldClearColor = new THREE.Color();
+      renderer.getClearColor(oldClearColor);
+      const dataURL = withExportRenderSize(() => {
+        if (transparent) {
+          backdropMesh.visible = false;
+          scene.background = null;
+          renderer.setClearColor(0x000000, 0);
         }
+        updateChromeReflections(renderer);
+        renderScene(renderer);
+        return renderer.domElement.toDataURL(transparent ? 'image/png' : 'image/jpeg', transparent ? 1 : 0.94);
       });
-
-      hexInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.currentTarget.blur();
-        }
-      });
+      backdropMesh.visible = wasVisible;
+      scene.background = oldBackground;
+      renderer.setClearColor(oldClearColor, oldClearAlpha);
+      renderScene(renderer);
+      return dataURL;
     }
 
-    function bindUI() {
-      elements.themeToggle.addEventListener("click", () => {
-        document.body.classList.toggle("dark");
-        elements.themeToggle.textContent = document.body.classList.contains("dark") ? "Dark UI" : "Light UI";
-      });
-
-      document.querySelectorAll(".tab").forEach((button) => {
-        button.addEventListener("click", () => {
-          const target = button.dataset.tab;
-          document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab === button));
-          document.querySelectorAll(".panel").forEach((panel) => panel.classList.toggle("active", panel.id === `${target}Panel`));
-        });
-      });
-
-      elements.basicForm.addEventListener("input", (event) => {
-        state.basicForm = Number(event.target.value);
-        mapBasicForm(state.basicForm);
-        syncAdvancedInputs();
-        syncLabels();
-      });
-
-      elements.basicMotion.addEventListener("input", (event) => {
-        state.basicMotion = Number(event.target.value);
-        mapBasicMotion(state.basicMotion);
-        syncAdvancedInputs();
-        syncLabels();
-      });
-
-      elements.canvasWidth.addEventListener("input", (event) => {
-        setCanvasFromWidth(Number(event.target.value));
-        syncLabels();
-        resizePreview();
-      });
-
-      elements.canvasHeight.addEventListener("input", (event) => {
-        setCanvasFromHeight(Number(event.target.value));
-        syncLabels();
-        resizePreview();
-      });
-
-      document.querySelectorAll('input[name="grainMode"]').forEach((input) => {
-        input.addEventListener("change", (event) => {
-          state.params.grainMode = event.target.value === "animated" ? 1 : 0;
-          syncLabels();
-        });
-      });
-
-      bindColorControl(elements.colorA, elements.colorAHex, "colorA");
-      bindColorControl(elements.colorB, elements.colorBHex, "colorB");
-      bindColorControl(elements.boundaryColor, elements.boundaryColorHex, "boundary");
-
-      elements.animateToggle.addEventListener("change", (event) => {
-        state.animate = event.target.checked;
-        if (!state.animate) frozenTime = accumulatedTime;
-      });
-
-      elements.randomiseButton.addEventListener("click", () => {
-        state.seed = Math.floor(1000 + Math.random() * 9000);
-        state.family = chooseFamily(state.seed + Math.floor(Math.random() * FAMILIES.length));
-        generateBlobs();
-        syncLabels();
-      });
-
-      elements.downloadImage.addEventListener("click", exportImage);
-      elements.downloadVideo.addEventListener("click", exportVideo);
-      window.addEventListener("resize", resizePreview);
+    function exportJPG() {
+      const { width, height } = exportDimensions();
+      downloadDataURL(renderStill(), `glass-plates-${width}x${height}-${Date.now()}.jpg`);
     }
 
-    function syncAdvancedInputs() {
-      Object.keys(ADVANCED_CONTROLS).forEach((key) => {
-        const input = document.getElementById(key);
-        if (input) input.value = state.params[key];
-      });
+    function exportPNGObject() {
+      const { width, height } = exportDimensions();
+      downloadDataURL(renderStill({ transparent: true }), `glass-plates-object-${width}x${height}-${Date.now()}.png`);
     }
 
-    function resizePreview() {
-      if (!renderer || !renderer.supported) return;
-      fitArtboardToStage();
-      const rect = elements.previewCanvas.getBoundingClientRect();
-      renderer.resize(rect.width, rect.height);
+    function setRecordingUI(isRecording, secondsLeft = state.videoDuration) {
+      if (!recordButton) return;
+      recordButton.disabled = isRecording;
+      recordButton.classList.toggle('is-recording', isRecording);
+      recordButton.textContent = isRecording ? `Recording ${Math.max(0, secondsLeft)}s...` : 'Record video';
     }
 
-    function animationLoop(now) {
-      const delta = Math.min(0.05, (now - lastNow) / 1000);
-      lastNow = now;
-      if (state.animate) {
-        accumulatedTime += delta;
-      } else {
-        accumulatedTime = frozenTime;
-      }
-      resizePreview();
-      renderer.render(state, accumulatedTime);
-      requestAnimationFrame(animationLoop);
-    }
-
-    function makeFilename(prefix, extension) {
-      return `${prefix}-${state.family}-${state.seed}.${extension}`;
-    }
-
-    async function exportImage() {
-      try {
-        const size = getCanvasSize();
-        const exportCanvas = document.createElement("canvas");
-        const exportRenderer = new FlowRenderer(exportCanvas);
-        if (!exportRenderer.supported) throw new Error("WebGL2 is not available for export.");
-        exportCanvas.width = size.width;
-        exportCanvas.height = size.height;
-        exportRenderer.render(state, accumulatedTime);
-        setStatus("Preparing JPG...");
-        exportCanvas.toBlob((blob) => {
-          if (!blob) {
-            setStatus("JPG export failed.");
-            return;
-          }
-          downloadBlob(blob, makeFilename("flow-field", "jpg"));
-          setStatus("JPG downloaded.");
-        }, "image/jpeg", 0.92);
-      } catch (error) {
-        setStatus(error.message || "JPG export failed.");
-      }
-    }
-
-    async function exportVideo() {
-      if (!("MediaRecorder" in window)) {
-        setStatus("MediaRecorder is not supported in this browser.");
+    function recordVideo() {
+      if (recordButton?.disabled) return;
+      if (!HTMLCanvasElement.prototype.captureStream || typeof MediaRecorder === 'undefined') {
+        window.alert('Video recording is not available in this browser.');
         return;
       }
-
-      const mp4Types = ["video/mp4;codecs=h264", "video/mp4;codecs=avc1.42E01E", "video/mp4"];
-      const mimeType = mp4Types.find((type) => MediaRecorder.isTypeSupported(type));
+      const mimeTypes = [
+        'video/mp4;codecs="avc1.42E01E"',
+        'video/mp4;codecs=h264',
+        'video/mp4',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm'
+      ];
+      const mimeType = mimeTypes.find((type) => MediaRecorder.isTypeSupported(type));
       if (!mimeType) {
-        setStatus("MP4 recording is not supported in this browser.");
+        window.alert('This browser does not support MP4/WebM recording.');
         return;
       }
-
-      const size = getCanvasSize();
-      const duration = Number(elements.videoDuration.value);
-      const exportCanvas = document.createElement("canvas");
-      const exportRenderer = new FlowRenderer(exportCanvas);
-      if (!exportRenderer.supported) {
-        setStatus("WebGL2 is not available for export.");
-        return;
-      }
-
-      exportCanvas.width = size.width;
-      exportCanvas.height = size.height;
-      const stream = exportCanvas.captureStream(EXPORT_FPS);
-      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 7000000 });
+      const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+      const durationSeconds = Math.max(1, Math.round(state.videoDuration));
+      const { width, height } = exportDimensions();
+      const recordCanvas = document.createElement('canvas');
+      const recordRenderer = new THREE.WebGLRenderer({
+        canvas: recordCanvas,
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: false
+      });
+      recordRenderer.outputColorSpace = THREE.SRGBColorSpace;
+      recordRenderer.toneMapping = renderer.toneMapping;
+      recordRenderer.toneMappingExposure = renderer.toneMappingExposure;
+      recordRenderer.setPixelRatio(1);
+      recordRenderer.setSize(width, height, false);
+      const recordCamera = camera.clone();
+      let recordActive = true;
+      const renderRecordFrame = () => {
+        if (!recordActive) return;
+        recordCamera.position.copy(camera.position);
+        recordCamera.quaternion.copy(camera.quaternion);
+        recordCamera.up.copy(camera.up);
+        recordCamera.fov = camera.fov;
+        recordCamera.near = camera.near;
+        recordCamera.far = camera.far;
+        recordCamera.aspect = width / Math.max(1, height);
+        recordCamera.updateProjectionMatrix();
+        updateChromeReflections(recordRenderer);
+        recordRenderer.render(scene, recordCamera);
+        requestAnimationFrame(renderRecordFrame);
+      };
+      renderRecordFrame();
+      const stream = recordCanvas.captureStream(state.videoFps);
       const chunks = [];
-
+      const recorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: state.videoBitrate * 1000 * 1000
+      });
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunks.push(event.data);
       };
       recorder.onstop = () => {
+        window.clearInterval(recordingTimer);
+        recordingTimer = null;
+        setRecordingUI(false);
+        recordActive = false;
         stream.getTracks().forEach((track) => track.stop());
+        recordRenderer.dispose();
         const blob = new Blob(chunks, { type: mimeType });
-        downloadBlob(blob, makeFilename("flow-field", "mp4"));
-        setStatus("MP4 downloaded.");
-        elements.downloadVideo.disabled = false;
+        const url = URL.createObjectURL(blob);
+        downloadDataURL(url, `glass-plates-${width}x${height}-${Date.now()}.${extension}`);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       };
+      if (extension !== 'mp4') {
+        window.alert('MP4 recording is not supported in this browser, so this export will be WebM.');
+      }
+      let secondsLeft = durationSeconds;
+      setRecordingUI(true, secondsLeft);
+      recordingTimer = window.setInterval(() => {
+        secondsLeft -= 1;
+        setRecordingUI(true, secondsLeft);
+      }, 1000);
+      recorder.start(250);
+      setTimeout(() => recorder.stop(), durationSeconds * 1000);
+    }
 
-      elements.downloadVideo.disabled = true;
-      setStatus(`Recording ${duration}s MP4...`);
-      recorder.start();
-
-      const totalFrames = Math.max(1, Math.round(duration * EXPORT_FPS));
-      const startTime = accumulatedTime;
-      let frame = 0;
-
-      function drawFrame() {
-        const t = startTime + frame / EXPORT_FPS;
-        exportRenderer.render(state, t);
-        frame += 1;
-        if (frame <= totalFrames) {
-          setTimeout(drawFrame, 1000 / EXPORT_FPS);
+    function animate() {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.elapsedTime;
+      if (state.motion && state.groupRotate && state.layout !== 'line' && state.layout !== 'coil') {
+        if (state.groupRotateMode === 'world axis') {
+          masterGroup.rotation.y += state.groupSpeed * dt;
         } else {
-          setTimeout(() => recorder.stop(), 180);
+          orbitGroup.rotation.y += state.groupSpeed * dt;
         }
       }
-
-      drawFrame();
+      items.forEach((item, i) => {
+        if (state.layout === 'line' && state.motion) {
+          applyLineWave(item, i, elapsed * state.lineWaveSpeed);
+        }
+        if (state.layout === 'coil' && state.motion) {
+          applyCoilFlow(item, i, elapsed * state.coilFlowSpeed * 0.08);
+        }
+        const phase = state.selfSpinTiming === 'cascade' ? i * state.selfSpinOffset : 0;
+        const baseX = THREE.MathUtils.degToRad(state.shapeRotX);
+        const baseY = THREE.MathUtils.degToRad(state.shapeRotY);
+        const baseZ = THREE.MathUtils.degToRad(state.shapeRotZ);
+        item.pivot.rotation.order = 'YXZ';
+        item.pivot.rotation.x = baseX + (state.motion && state.selfSpin ? Math.sin(elapsed * 0.35 + phase) * 0.08 : 0);
+        item.pivot.rotation.y = baseY + (state.motion && state.selfSpin ? elapsed * state.selfSpeed + phase : 0);
+        item.pivot.rotation.z = baseZ;
+      });
+      updateCameraTween(dt);
+      controls.update();
+      updateChromeReflections(renderer);
+      renderScene(renderer);
+      requestAnimationFrame(animate);
     }
 
-    function initialise() {
-      mapBasicForm(state.basicForm);
-      mapBasicMotion(state.basicMotion);
-      state.family = chooseFamily(state.seed);
-      generateBlobs();
-      buildRatioOptions();
-      buildSwatches();
-      buildAdvancedControls();
-      bindUI();
-      syncAdvancedInputs();
-      syncLabels();
-
-      try {
-        renderer = new FlowRenderer(elements.previewCanvas);
-      } catch (error) {
-        elements.notice.classList.add("show");
-        setStatus(error.message || "WebGL2 setup failed.");
-        return;
-      }
-
-      if (!renderer.supported) {
-        elements.notice.classList.add("show");
-        setStatus("WebGL2 is not available.");
-        return;
-      }
-
-      resizePreview();
-      requestAnimationFrame(animationLoop);
-    }
-
-    initialise();
+    window.addEventListener('resize', () => {
+      resize();
+      if (!colorPickerModal.classList.contains('is-hidden')) ensurePickerInView();
+    });
+    buildUI();
+    const setExportDrawer = (open) => {
+      exportDrawer.classList.toggle('is-open', open);
+      exportDrawer.setAttribute('aria-hidden', String(!open));
+      exportToggle.setAttribute('aria-expanded', String(open));
+    };
+    exportToggle.addEventListener('click', () => {
+      setExportDrawer(!exportDrawer.classList.contains('is-open'));
+    });
+    exportClose.addEventListener('click', () => setExportDrawer(false));
+    themeToggle.addEventListener('click', () => {
+      state.lightUI = !state.lightUI;
+      applyTheme();
+    });
+    applyTheme();
+    refreshConditionalUI();
+    updateExportSummary();
+    applyLook();
+    rebuildItems();
+    resize();
+    updateFocusBlur();
+    moveCamera(state.cameraPreset, false);
+    animate();
   </script>
 </body>
 </html>
